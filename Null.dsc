@@ -14,6 +14,9 @@ nullexist:
                 - wait 1t
                 - flag <[wherei]> whereiwas:!
                 - execute as_server "gamemode survival <[wherei].name>"
+        - if <server.has_flag[blackthing]>:
+            - foreach <server.flag[blackthing]> as:thething:
+                - execute as_server "execute as <[thething].uuid> at @s run tp @s ^ ^ ^0.25 facing entity @a[limit=1,sort=nearest] feet"
 
         on entity transforms:
         - if <server.flag[null]> == <context.entity>:
@@ -39,8 +42,15 @@ nullexist:
         - if <player.has_flag[iamhere]>:
             - determine cancelled
 
-
-
+nullticktasks:
+    type: world
+    debug: false
+    events:
+        on tick every:2:
+        - if <server.has_flag[blackthing]>:
+            - foreach <server.flag[blackthing]> as:thething:
+                - execute as_server "execute at <[thething].uuid> run particle minecraft:block minecraft:black_concrete ~ ~1 ~ 1 1 1 0.1 20 force"
+                - hurt 2 <[thething].location.find_entities.within[3]>
 
 # Command: /whereami
 nulljoin_command:
@@ -55,9 +65,11 @@ nulljoin_command:
     - wait 1t
     - flag server null:<player.target>
     - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab true"
-    - execute as_server 'tellraw @a {"translate":"multiplayer.player.joined","with":["Null"],"color":"yellow"}'
     - teleport <server.flag[null]> <player.location.up[100]>
     - adjust <server.flag[null]> visible:false
+    - if <context.args.get[1]> == silent:
+        - stop
+    - execute as_server 'tellraw @a {"translate":"multiplayer.player.joined","with":["Null"],"color":"yellow"}'
 
 nullleave_command:
     type: command
@@ -67,8 +79,11 @@ nullleave_command:
     permission: null.leave
     script:
     - kill <server.flag[null]>
-    - execute as_server 'tellraw @a {"translate":"multiplayer.player.left","with":["Null"],"color":"yellow"}'
     - flag server null:!
+    - if <context.args.get[1]> == silent:
+        - stop
+    - execute as_server 'tellraw @a {"translate":"multiplayer.player.left","with":["Null"],"color":"yellow"}'
+
 # Command: /whereis
 nullwatch:
     type: command
@@ -282,8 +297,47 @@ nullHost:
     - announce "<white>Local game hosted on port [<green><&k>25567<white>]"
     - wait 20s
     - execute as_server 'tellraw @a {"translate":"multiplayer.player.joined","with":["xXram2dieXx"],"color":"yellow"}'
-    - wait 10s
+    - wait 30s
     - announce "<&lt>xXram2dieXx<&gt> 48656c6c6f3f"
     - wait 15s
     - announce "<&lt>xXram2dieXx<&gt> 486f772064696420796f7520666f756e642074686973207365727665723f"
+    - wait 20s
+    - announce "<&lt>xXram2dieXx<&gt> 446f20796f752077616e7420746f20626520667269656e64733f"
+    - wait 17s
+    - announce "<&lt>xXram2dieXx<&gt> 4c656176652e"
+    - wait 23s
+    - execute as_server 'tellraw @a {"translate":"multiplayer.player.left","with":["xXram2dieXx"],"color":"yellow"}'
 
+nullblackthing:
+    type: command
+    name: nullblackthing
+    description: . . .
+    usage: /nullblackthing
+    permission: null.blackthing
+    script:
+    - define randomplayer <server.online_players.random>
+    - spawn armor_stand <[randomplayer].location>
+    - execute as_server "execute at <[randomplayer].name> run teleport <[randomplayer].name> ~ ~ ~ 0 0"
+    - wait 1t
+    - define target <[randomplayer].target>
+    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 1 30 false <[target].uuid>"
+    - wait 1t
+    - flag server blackthing:->:<[target]>
+    - adjust <[target]> invulnerable:true
+    - adjust <[target]> visible:false
+    - adjust <[target]> gravity:false
+    - flag <[target]> itsame
+
+nullnoblackthing:
+    type: command
+    name: nullnoblackthing
+    description: For admins only
+    usage: /nullnoblackthing
+    permission: null.nullnoblackthing
+    script:
+    - define theblack <player.location.find_entities[armor_stand].within[10].get[1]>
+    - if <[theblack].has_flag[itsame]>:
+        - flag <[theblack]> itsame:!
+        - flag server blackthing:<-:<[theblack]>
+        - wait 1t
+        - kill <[theblack]>
