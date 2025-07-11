@@ -34,6 +34,8 @@ nullexist:
                     - execute as_server nullsummoned
                     - wait 1t
                     - flag server nullisangry:!
+        - if <player.has_flag[nomove]>:
+            - determine cancelled
         on player changes sign:
         - if <player.has_flag[iamhere]>:
             - determine cancelled
@@ -41,6 +43,20 @@ nullexist:
         on player right clicks oak_door:
         - if <player.has_flag[iamhere]>:
             - determine cancelled
+
+        on player enters portal:
+        - if <server.has_flag[null]>:
+            - if !<server.has_flag[inaminute]>:
+                - flag server inaminute expire:10s
+                - execute as_server "nullleave silent"
+                - wait 10s
+                - execute as_server "nulljoin silent"
+        
+        on entity enters portal:
+        - if <server.has_flag[null]>:
+            - if <server.flag[null]> == <context.entity>:
+                - determine cancelled
+
 
 nullticktasks:
     type: world
@@ -60,12 +76,19 @@ nulljoin_command:
     usage: /nulljoin
     permission: null.join
     script:
-    - execute as_op "tp <player.name> ~ ~ ~ 0 0"
-    - execute as_op "summon villager ~ ~ ~ {NoAI:1b}"
+    - define randomplayer <server.online_players.random>
+    - define yaw <[randomplayer].location.yaw>
+    - define pitch <[randomplayer].location.pitch>
+    - flag <[randomplayer]> nomove
+    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ 0 0"
+    - execute as_server "execute at <[randomplayer].name> run summon villager ~ ~ ~ {NoAI:1b}"
     - wait 1t
-    - flag server null:<player.target>
+    - flag server null:<[randomplayer].target>
+    - wait 1t
+    - flag <[randomplayer]> nomove:!
+    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ <[yaw]> <[pitch]>"
     - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab true"
-    - teleport <server.flag[null]> <player.location.up[100]>
+    - teleport <server.flag[null]> <[randomplayer].location.up[100]>
     - adjust <server.flag[null]> visible:false
     - if <context.args.get[1]> == silent:
         - stop
@@ -78,6 +101,8 @@ nullleave_command:
     usage: /nullleave
     permission: null.leave
     script:
+    - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab false"
+    - wait 1t
     - kill <server.flag[null]>
     - flag server null:!
     - if <context.args.get[1]> == silent:
