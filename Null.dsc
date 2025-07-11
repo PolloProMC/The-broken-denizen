@@ -132,9 +132,9 @@ nullsong:
     - execute as_server "effect give @a minecraft:blindness 16 100"
     - wait 1s
     - execute as_server "time add 600s"
-    - nbs play file:randomsongflute targets:<server.online_players>
+    - nbs play file:Nullsong targets:<server.online_players>
     - wait 22s
-    - nbs play file:randomsongflute targets:<server.online_players>
+    - nbs play file:Nullsong targets:<server.online_players>
 
 nullsteps:
     type: command
@@ -341,12 +341,17 @@ nullblackthing:
     permission: null.blackthing
     script:
     - define randomplayer <server.online_players.random>
+    - define yaw <[randomplayer].location.yaw>
+    - define pitch <[randomplayer].location.pitch>
+    - flag <[randomplayer]> nomove
     - spawn armor_stand <[randomplayer].location>
     - execute as_server "execute at <[randomplayer].name> run teleport <[randomplayer].name> ~ ~ ~ 0 0"
     - wait 1t
     - define target <[randomplayer].target>
-    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 1 30 false <[target].uuid>"
     - wait 1t
+    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ <[yaw]> <[pitch]>"
+    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 1 30 false <[target].uuid>"
+    - flag <[randomplayer]> nomove:!
     - flag server blackthing:->:<[target]>
     - adjust <[target]> invulnerable:true
     - adjust <[target]> visible:false
