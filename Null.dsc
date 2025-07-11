@@ -57,6 +57,14 @@ nullexist:
             - if <server.flag[null]> == <context.entity>:
                 - determine cancelled
 
+        on player right clicks *_bed:
+        - if <util.random_chance[50]>:
+            - if <player.has_flag[doneonce]>:
+                - stop
+            - wait 1.5s
+            - flag <player> doneonce expire:10s
+            - hurt 1 <player>
+
 
 nullticktasks:
     type: world
@@ -363,7 +371,7 @@ nullnoblackthing:
     name: nullnoblackthing
     description: For admins only
     usage: /nullnoblackthing
-    permission: null.nullnoblackthing
+    permission: null.noblackthing
     script:
     - define theblack <player.location.find_entities[armor_stand].within[10].get[1]>
     - if <[theblack].has_flag[itsame]>:
@@ -371,3 +379,33 @@ nullnoblackthing:
         - flag server blackthing:<-:<[theblack]>
         - wait 1t
         - kill <[theblack]>
+
+nullhole:
+    type: command
+    name: nullhole
+    description: Redstone Torch
+    usage: /nullhole
+    permission: null.hole
+    script:
+    - define randomplayer <server.online_players.random>
+    - define block <[randomplayer].location.forward[100].block>
+    - if <[block].material.name> == air:
+        - define I 0
+        - while <[block].down[<[I]>].material.name> == air:
+            - define I:++
+        - define newblock <[block].down[<[I].sub[1]>]>
+        - modifyblock <[newblock].add[1,0,0]> redstone_torch
+        - modifyblock <[newblock].add[-1,0,0]> redstone_torch
+        - modifyblock <[newblock].add[0,0,-1]> redstone_torch
+        - modifyblock <[newblock].add[0,0,1]> redstone_torch
+        - execute as_server "fill <[newblock].x> <[newblock].y> <[newblock].z> <[newblock].x> -64 <[newblock].z> air"
+    - if <[block].material.name> != air:
+        - define I 0
+        - while <[block].up[<[I]>].material.name> != air:
+            - define I:++
+        - define newblock <[block].up[<[I]>]>
+        - modifyblock <[newblock].add[1,0,0]> redstone_torch
+        - modifyblock <[newblock].add[-1,0,0]> redstone_torch
+        - modifyblock <[newblock].add[0,0,-1]> redstone_torch
+        - modifyblock <[newblock].add[0,0,1]> redstone_torch
+        - execute as_server "fill <[newblock].x> <[newblock].y> <[newblock].z> <[newblock].x> -64 <[newblock].z> air"
