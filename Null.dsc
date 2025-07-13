@@ -5,9 +5,7 @@ nullexist:
         on delta time secondly:
         - if <server.has_flag[null]>:
             - if !<server.has_flag[nullwatch]>:
-                - teleport <server.flag[null]> <server.online_players.random.location.above[100]>
-                - adjust <server.flag[null]> visible:false
-                - adjust <server.flag[null]> invulnerable:true
+                - execute as_server "teleport <server.flag[null].uuid> ~ ~400 ~"
         - foreach <server.online_players_flagged[whereiwas]> as:wherei:
             - if !<[wherei].has_flag[iamhere]>:
                 - teleport <[wherei]> <[wherei].flag[whereiwas]>
@@ -23,7 +21,8 @@ nullexist:
             - determine cancelled
 
         on delta time minutely:
-        - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab true"
+        - if !<server.has_flag[nullwatch]>:
+            - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab true"
 
         on player walks:
         - if <server.has_flag[nullwatch]>:
@@ -44,13 +43,6 @@ nullexist:
         - if <player.has_flag[iamhere]>:
             - determine cancelled
 
-        on player enters portal:
-        - if <server.has_flag[null]>:
-            - if !<server.has_flag[inaminute]>:
-                - flag server inaminute expire:10s
-                - execute as_server "nullleave silent"
-                - wait 10s
-                - execute as_server "nulljoin silent"
         
         on entity enters portal:
         - if <server.has_flag[null]>:
@@ -183,9 +175,9 @@ nullHereIam:
     script:
     - foreach <server.online_players> as:player:
         - announce "<element[<[player].name>].on_hover[<[player].name><n>Type: Player<n><[player].uuid>]> has made the advancement <green>[<element[Here I am.].on_hover[<green>Here I am.<n>Can you see me?]>]"
-        - playsound <server.online_players> sound:ui_toast_in
-        - wait 6s
-        - playsound <server.online_players> sound:ui_toast_out
+    - playsound <server.online_players> sound:ui_toast_in
+    - wait 6s
+    - playsound <server.online_players> sound:ui_toast_out
  
 nulladvancement2:
     type: command
@@ -196,9 +188,9 @@ nulladvancement2:
     script:
     - foreach <server.online_players> as:player:
         - announce "<element[<[player].name>].on_hover[<[player].name><n>Type: Player<n><[player].uuid>]> has made the advancement <green>[<element[nullnullnull].on_hover[<green>nullnullnull<n>nullnullnull]>]"
-        - playsound <server.online_players> sound:ui_toast_in
-        - wait 6s
-        - playsound <server.online_players> sound:ui_toast_out
+    - playsound <server.online_players> sound:ui_toast_in
+    - wait 6s
+    - playsound <server.online_players> sound:ui_toast_out
 
 nullgoaway:
     type: command
@@ -209,9 +201,9 @@ nullgoaway:
     script:
     - foreach <server.online_players> as:player:
         - announce "<element[<[player].name>].on_hover[<[player].name><n>Type: Player<n><[player].uuid>]> has made the advancement <green>[<element[Go Away].on_hover[<green>Go Away<n>This place is not for you.]>]"
-        - playsound <server.online_players> sound:ui_toast_in
-        - wait 6s
-        - playsound <server.online_players> sound:ui_toast_out
+    - playsound <server.online_players> sound:ui_toast_in
+    - wait 6s
+    - playsound <server.online_players> sound:ui_toast_out
 
 nullstatue:
     type: command
@@ -269,7 +261,7 @@ nullback:
     - foreach <server.online_players> as:player:
         - teleport <[player]> <[player].flag[sentback]>
         - actionbar =) targets:<server.online_players>
-        - playsound <server.online_players> sound:ambient_cave
+    - playsound <server.online_players> sound:ambient_cave
 
 nullmaze:
     type: command
