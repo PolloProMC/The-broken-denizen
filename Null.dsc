@@ -69,6 +69,22 @@ nullexist:
             - flag <player> doneonce expire:10s
             - hurt 1 <player>
 
+        on player drops item:
+        - if <player.has_flag[inventoryfreeze]>:
+            - determine cancelled
+
+        on player clicks in inventory:
+        - if <player.has_flag[inventoryfreeze]>:
+            - determine cancelled
+
+        on player swaps items:
+        - if <player.has_flag[inventoryfreeze]>:
+            - determine cancelled
+
+        on player closes inventory:
+        - if <player.has_flag[inventoryfreeze]>:
+            - flag <player> inventoryfreeze:!
+
 
 nullticktasks:
     type: world
@@ -194,7 +210,7 @@ nullHereIam:
     - playsound <server.online_players> sound:ui_toast_in
     - wait 6s
     - playsound <server.online_players> sound:ui_toast_out
- 
+
 nulladvancement2:
     type: command
     name: nulladvancement2
@@ -433,12 +449,14 @@ nulljumpscare:
         - define blockbehind:++
     - flag server nullwatch expire:1s
     - execute as_server "teleport <server.flag[null].uuid> <[randomplayer].location.backward[<[blockbehind]>].x> <[randomplayer].location.backward[<[blockbehind]>].y> <[randomplayer].location.backward[<[blockbehind]>].z> facing entity <[randomplayer].name>"
+    - adjust <server.flag[null]> visible:true
     - wait 0.5s
     - execute as_server "execute as <[randomplayer].name> at @s run teleport <[randomplayer].name> ~ ~ ~ facing entity <server.flag[null].uuid>"
     - hurt 5 <[randomplayer]>
     - playsound <[randomplayer]> sound:entity_enderman_death volume:100
     - wait 1s
     - execute as_server "teleport <server.flag[null].uuid> ~ ~400 ~"
+    - adjust <server.flag[null]> visible:false
 
 nullbreak:
     type: command
@@ -506,3 +524,40 @@ nulldontyousee:
     - wait 0.5
     - actionbar '' targets:<server.online_players>
     - execute as_server "effect clear @a minecraft:blindness"
+
+nullrandomlook:
+    type: command
+    name: nullrandomlook
+    description: Wha-
+    usage: /nullrandomlook
+    permission: null.randomlook
+    script:
+    - define randomplayer <server.online_players.random>
+    - repeat 4:
+        - execute as_server "execute as <[randomplayer].name> at @s run teleport <[randomplayer].name> ~ ~ ~ <util.random.int[0].to[360]> <util.random.int[0].to[90]>"
+        - hurt 1 <[randomplayer]>
+        - wait 0.2s
+
+nullinventory:
+    type: command
+    name: nullinventory
+    description: help
+    usage: /nullinventory
+    permission: null.inventory
+    script:
+    - define randomplayer <server.online_players.random>
+    - flag <[randomplayer]> inventoryfreeze
+    - inventory open d:generic[size=27;title=help;contents=<player.inventory.list_contents>]
+
+nullgoodluck:
+    type: command
+    name: nullgoodluck
+    description: Good luck. =)
+    usage: /nullgoodluck
+    permission: null.goodluck
+    script:
+    - execute as_server "effect give @a minecraft:blindness 100 100 true"
+    - title "title:Good luck." "subtitle:=)" fade_in:0s stay:4s fade_out:0s targets:<server.online_players>
+    - execute as_server "time set midnight"
+    - wait 4s
+    - execute as_server "effect clear @a minecraft:blindness
