@@ -15,6 +15,11 @@ nullexist:
         - if <server.has_flag[blackthing]>:
             - foreach <server.flag[blackthing]> as:thething:
                 - execute as_server "execute as <[thething].uuid> at @s run tp @s ^ ^ ^0.25 facing entity @a[limit=1,sort=nearest] feet"
+        - if <server.has_flag[null]>:
+            - if !<server.flag[null].location.exists>:
+                - execute as_server "nullleave silent"
+                - wait 3s
+                - execute as_server "nulljoin silent"
 
         on entity transforms:
         - if <server.flag[null]> == <context.entity>:
@@ -43,7 +48,14 @@ nullexist:
         - if <player.has_flag[iamhere]>:
             - determine cancelled
 
-        
+        on player enters portal:
+        - if <server.has_flag[null]>:
+            - if !<server.has_flag[inaminute]>:
+                - flag server inaminute expire:10s
+                - execute as_server "nullleave silent"
+                - wait 10s
+                - execute as_server "nulljoin silent"
+
         on entity enters portal:
         - if <server.has_flag[null]>:
             - if <server.flag[null]> == <context.entity>:
@@ -87,12 +99,16 @@ nulljoin_command:
     - wait 1t
     - flag <[randomplayer]> nomove:!
     - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ <[yaw]> <[pitch]>"
+    - execute as_server "teleport <server.flag[null].uuid> ~ ~400 ~"
+    - wait 1t
     - execute as_server "disgplayer <server.flag[null].uuid> Player yyy88 setName Null setDisplayedInTab true"
-    - teleport <server.flag[null]> <[randomplayer].location.up[100]>
     - adjust <server.flag[null]> visible:false
     - if <context.args.get[1]> == silent:
         - stop
     - execute as_server 'tellraw @a {"translate":"multiplayer.player.joined","with":["Null"],"color":"yellow"}'
+    - if !<server.has_flag[forceloaded]>:
+        - execute as_server "forceload add ~ ~ ~ ~"
+        - flag server forceloaded
 
 nullleave_command:
     type: command
@@ -205,12 +221,12 @@ nullgoaway:
     - wait 6s
     - playsound <server.online_players> sound:ui_toast_out
 
-nullstatue:
+nullaggressivecross:
     type: command
-    name: nullstatue
+    name: nullaggressivecross
     description: 0 0 0 - - - - - -
-    usage: /nullstatue
-    permission: null.statue
+    usage: /nullaggressivecross
+    permission: null.aggressivecross
     script:
     - define randomplayer <server.online_players.random>
     - define chest <[randomplayer].location.find_blocks[chest].within[30].get[1]>
@@ -284,15 +300,15 @@ nullOpenGL:
     permission: null.maze
     script:
     - announce "<yellow>OpenGL Error<white>: 1282 (Invalid operation)"
-    - wait 5s
-    - announce "<yellow>OpenGL Error<white>: 1282 (Invalid operation)"
     - wait 1s
     - announce "<yellow>OpenGL Error<white>: 1282 (Invalid operation)"
     - wait 1s
     - announce "<yellow>OpenGL Error<white>: 1282 (Invalid operation)"
-    - wait 3s
+    - wait 1s
+    - announce "<yellow>OpenGL Error<white>: 1282 (Invalid operation)"
+    - wait 6s
     - announce "<yellow>OpenGL Error<white>: 0 (Here I am.)"
-    - playsound <server.online_players> sound:ambient_cave
+    - playsound <server.online_players> sound:ambient_cave pitch:0.5
 
 nullFall:
     type: command
@@ -401,3 +417,92 @@ nullhole:
         - modifyblock <[newblock].add[0,0,-1]> redstone_torch
         - modifyblock <[newblock].add[0,0,1]> redstone_torch
         - execute as_server "fill <[newblock].x> <[newblock].y> <[newblock].z> <[newblock].x> -64 <[newblock].z> air"
+
+nulljumpscare:
+    type: command
+    name: nulljumpscare
+    description: AGH- WHAT THE-
+    usage: /nulljumpscare
+    permission: null.jumpscare
+    script:
+    - define randomplayer <server.online_players.random>
+    - define blockbehind 1
+    - repeat 5:
+        - if <[randomplayer].location.backward[<[blockbehind]>].block.material.name> != air:
+            - stop
+        - define blockbehind:++
+    - flag server nullwatch expire:1s
+    - execute as_server "teleport <server.flag[null].uuid> <[randomplayer].location.backward[<[blockbehind]>].x> <[randomplayer].location.backward[<[blockbehind]>].y> <[randomplayer].location.backward[<[blockbehind]>].z> facing entity <[randomplayer].name>"
+    - wait 0.5s
+    - execute as_server "execute as <[randomplayer].name> at @s run teleport <[randomplayer].name> ~ ~ ~ facing entity <server.flag[null].uuid>"
+    - hurt 5 <[randomplayer]>
+    - playsound <[randomplayer]> sound:entity_enderman_death volume:100
+    - wait 1s
+    - execute as_server "teleport <server.flag[null].uuid> ~ ~400 ~"
+
+nullbreak:
+    type: command
+    name: nullbreak
+    description: <red>Warning!! This command WILL greif.
+    usage: /nullbreak
+    permission: null.break
+    script:
+    - define randomplayer <server.online_players.random>
+    - define blockbehind 1
+    - execute as_server "execute as <[randomplayer].name> at @s run fill ~5 ~5 ~5 ~ ~ ~ structure_void destroy"
+
+nullcross:
+    type: command
+    name: nullcross
+    description: 0 0 0 - - - - - -
+    usage: /nullcross
+    permission: null.cross
+    script:
+    - define randomplayer <server.online_players.random>
+    - define block <[randomplayer].location.backward[100].highest.block>
+    - if <[block].material.name> == air:
+        - modifyblock <[block].add[0,0,1]> netherrack
+        - modifyblock <[block].add[0,1,1]> netherrack
+        - modifyblock <[block].add[0,2,1]> netherrack
+        - modifyblock <[block].add[0,3,1]> netherrack
+        - modifyblock <[block].add[0,4,1]> netherrack
+        - modifyblock <[block].add[1,3,1]> netherrack
+        - modifyblock <[block].add[-1,3,1]> netherrack
+        - spawn giant <[block]>
+        - wait 1t
+        - define giant <[randomplayer].location.find_entities[giant].within[110].get[1]>
+        - execute as_server 'execute as <[giant].uuid> at @s run setblock ~ ~3 ~ minecraft:oak_wall_sign[facing=north,waterlogged=false]{back_text:{color:"black",has_glowing_text:0b,messages:['""','""','""','""']},front_text:{color:"black",has_glowing_text:0b,messages:['"[0] [0] [0]"','"[-] [-]"','"[-] [-]"','"[-] [-]"']},is_waxed:0b}'
+        - wait 1t
+        - teleport <[giant]> <[giant].location.up[100]>
+        - wait 1t
+        - kill <[giant]>
+    - if <[block].material.name> != air:
+        - modifyblock <[block].add[0,0,1]> netherrack
+        - modifyblock <[block].add[0,1,1]> netherrack
+        - modifyblock <[block].add[0,2,1]> netherrack
+        - modifyblock <[block].add[0,3,1]> netherrack
+        - modifyblock <[block].add[0,4,1]> netherrack
+        - modifyblock <[block].add[1,3,1]> netherrack
+        - modifyblock <[block].add[-1,3,1]> netherrack
+        - spawn giant <[block]>
+        - wait 1t
+        - define giant <[randomplayer].location.find_entities[giant].within[110].get[1]>
+        - execute as_server 'execute as <[giant].uuid> at @s run setblock ~ ~3 ~ minecraft:oak_wall_sign[facing=north,waterlogged=false]{back_text:{color:"black",has_glowing_text:0b,messages:['""','""','""','""']},front_text:{color:"black",has_glowing_text:0b,messages:['"[0] [0] [0]"','"[-] [-]"','"[-] [-]"','"[-] [-]"']},is_waxed:0b}'
+        - wait 1t
+        - teleport <[giant]> <[giant].location.up[100]>
+        - wait 1t
+        - kill <[giant]>
+
+nulldontyousee:
+    type: command
+    name: nulldontyousee
+    description: DON'T YOU SEE? DON'T YOU SEE? DON'T YOU SEE?
+    usage: /nulldontyousee
+    permission: null.dontyousee
+    script:
+    - execute as_server "effect give @a minecraft:blindness 100 100 true"
+    - title "title:DON'T YOU SEE?" "subtitle:DON'T YOU SEE?" fade_in:0s stay:0.5s fade_out:0s targets:<server.online_players>
+    - actionbar "DON'T YOU SEE?" targets:<server.online_players>
+    - wait 0.5
+    - actionbar '' targets:<server.online_players>
+    - execute as_server "effect clear @a minecraft:blindness"
