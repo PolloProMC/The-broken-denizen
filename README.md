@@ -8,6 +8,7 @@ Sorry for the messy code, credits to the original creator of _The Broken Script_
 - Libs disguises
 - The resource pack provided
 - Denizen script
+- Minecraft version **1.20.4**
 
 ---
 
@@ -18,6 +19,7 @@ Plugin can:
 - Disable chat messages  
 - Grief bases  
 - **Crash** Minecraft clients
+- Make you unable to exit the server
 
 ---
 
