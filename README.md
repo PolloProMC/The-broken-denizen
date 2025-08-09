@@ -28,4 +28,7 @@ Plugin can:
 This plugin has events that crash the Minecraft client, but **no crash method is provided**.  
 You must research and supply one yourself (e.g. particle crash).
 
+To insert a crash, go to the bottom of the script, above the ignore section, and look for the "nullcrash" command.
+You can insert a crash of your choise there.
+
 If no crash is chosen, the plugin will just kick the player.
