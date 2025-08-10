@@ -92,6 +92,8 @@ nullexist:
             - flag server eventnull:++
             - if <server.has_flag[notimedevents]>:
                 - stop
+            - if <server.online_players.size> == 0:
+                - stop
             - define time <world[world].time>
             - if <[time]> >= 0 && <[time]> < 12300 || <[time]> >= 23850:
                 - define eventsperminute 6
@@ -124,7 +126,8 @@ nullexist:
                 - if <[chance]>:
                     - define randomentity <list[nullr2|nullblackthing|nullfaraway].random>
                     - execute as_server <[randomentity]>
-                    - narrate "Oh no! an entity, current entity: <[randomentity]>" targets:<server.online_ops>
+                    - if <server.has_flag[nulldebug]>:
+                        - narrate "Oh no! an entity, current entity: <[randomentity]>" targets:<server.online_ops>
             - if <server.flag[eventnull].mod[10]> == 0:
                 - flag server reputation:<list[GOOD|NORMAL|BAD].random>
 
@@ -235,8 +238,8 @@ nullexist:
         on player right clicks block:
         # ------------- name.null and name.revuxor -------------
         - define item <player.item_in_hand.material.name>
-        - define itemname <player.item_in_hand.display>
         - if <[item]> == structure_void or <player.inventory.slot[offhand].material.name> == structure_void:
+            - define itemname <player.item_in_hand.display>
             - if <[itemname]> == <white>name.null or <player.inventory.slot[offhand].display> == <white>name.null:
                 - determine passively cancelled
                 - execute as_server "clear <player.name> minecraft:structure_void 1"
@@ -512,9 +515,10 @@ nullticktasks:
             - foreach <server.flag[blackthing]> as:thething:
                 - execute as_server "execute at <[thething].uuid> run particle minecraft:block minecraft:black_concrete ~ ~1 ~ 1 1 1 0.1 20 force"
                 - hurt 2 <[thething].location.find_entities.within[3]>
-                - define water <[thething].location.find_blocks[water].within[3]>
-                - modifyblock <[water]> cobblestone
-                - wait 1t
+                - if <[thething].location.find_blocks[water].within[3].exists>:
+                    - define water <[thething].location.find_blocks[water].within[3]>
+                    - modifyblock <[water]> cobblestone
+                    - wait 1t
         # ------------- R2 -------------
         - if <server.has_flag[r2]>:
             - foreach <server.flag[r2]> as:r2:
@@ -575,6 +579,10 @@ nullticktasks:
                     - flag server nullflying:<-:<[null]>
         - if <server.has_flag[ramyoudie]>:
             - execute as_server "execute at <server.flag[ramyoudie].uuid> run particle minecraft:block minecraft:black_concrete ~ ~1 ~ 1 1 1 0.1 20 force"
+            - if <server.flag[ramyoudie].location.find_blocks[water].within[3].exists>:
+                - define water <server.flag[ramyoudie].location.find_blocks[water].within[3]>
+                - modifyblock <[water]> cobblestone
+                - wait 1t
             - define water <[thething].location.find_blocks[water].within[3]>
             - modifyblock <[water]> cobblestone
 
@@ -604,6 +612,7 @@ nullticktasks:
         # ------------- Handle faraway -------------
         - if <server.has_flag[faraway]>:
             - foreach <server.flag[faraway]> as:far:
+                - foreach <server.online_players>
                 - execute as_server "execute as <[far].uuid> at @s run tp @s ~ ~ ~ facing entity @a[limit=1,sort=nearest] feet"
                 - if <player.location.distance[<[far].location>]> <= 25:
                     - ratelimit <player> 2s
@@ -669,8 +678,10 @@ nullticktasks:
                 - execute as_server "data modify entity <server.flag[circuitattacker].uuid> AngryAt set from entity <player.uuid> UUID"
                 - execute as_server "effect give <server.flag[circuitattacker].uuid> minecraft:speed infinite 2 true"
                 - spawn lightning <player.location>
-        # ------------- Handle Circuit -------------
+        # ------------- Handle Disguised Circuit -------------
         - if <server.has_flag[circuit]>:
+            - if <player.location.world.name> != <server.flag[circuit].location.world.name>:
+                - stop
             - if <player.location.distance[<server.flag[circuit].location>]> <= 4:
                 - ratelimit <player> 1m
                 - if <player.name> == <server.flag[circuit].name>:
@@ -1372,7 +1383,7 @@ nullfalsevillager:
         - define randomz <util.random.int[5].to[10]>
     - else:
         - define randomz <util.random.int[-5].to[-10]>
-    - spawn villager <[randomplayer].location.above[4000]> save:unsusvillager
+    - spawn villager <[randomplayer].location.above[50]> save:unsusvillager
     - flag server unsusvillager:<entry[unsusvillager].spawned_entity>
     - define block <[randomplayer].location.add[<[randomx]>,0,<[randomz]>].block>
     - if <[block].material.name> == air:
@@ -1386,7 +1397,7 @@ nullfalsevillager:
             - define I:++
         - define block <[block].up[<[I]>]>
     - teleport <server.flag[unsusvillager]> <[block]>
-    - spawn <[randomplayer].location.above[200]> zombified_piglin save:circuitattacker
+    - spawn <[randomplayer].location.above[50]> zombified_piglin save:circuitattacker
     - flag server circuitattacker:<entry[circuitattacker].spawned_entity>
     - execute as_server "disgplayer <server.flag[circuitattacker].uuid> Player yyy88 setName Circuit setNameVisible false"
     - adjust <server.flag[circuitattacker]> custom_name:Circuit
@@ -1684,6 +1695,13 @@ nulltimeset:
         - define target:18000
     - else if <[arg]> == day:
         - define target:0
+    - else if <[arg]> == noon:
+        - define target:6000
+    - else if <[arg]> == night:
+        - define target:12000
+    - else:
+        - narrate "<red>Invalid time."
+        - stop
     - define now <world[world].time>
     - define fullDay:24000
     - define halfDay:12000
