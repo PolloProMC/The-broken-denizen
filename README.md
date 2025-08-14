@@ -23,6 +23,18 @@ Plugin can:
 
 ---
 
+# Installation guide
+
+1. Install Denizen script and drop it into your plugins folder.
+2. Set up script folder, If missing, create: plugins/Denizen/scripts/
+3. Add Null.dsc Put Null.dsc inside the scripts folder. Optionally, edit nullcrash to insert a crash of your liking.
+4. Install Lib's Disguises and add it to the plugins folder
+5. Place the provided Generated folder into your server’s "world" directory.
+6. Start the server.
+7. Have fun! (And get scared maybe.)
+
+---
+
 # About crashes.
 
 This plugin has events that crash the Minecraft client, but **no crash method is provided**.  
