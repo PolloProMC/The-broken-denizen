@@ -30,7 +30,7 @@ Plugin can:
 2. Set up script folder, If missing, create: plugins/Denizen/scripts/
 3. Put Null.dsc inside the scripts folder. Optionally, edit nullcrash to insert a crash of your liking.
 4. Install Lib's Disguises and add it to the plugins folder
-5. Place the provided Generated folder into your server’s "world" directory.
+5. Place the provided Generated folder into your server’s "world" directory. If zipped, extract contents.
 6. Start the server.
 7. Install the provided resource pack on your client and join the server.
 8. Have fun! (And get scared maybe.)
