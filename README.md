@@ -8,7 +8,7 @@ Sorry for the messy code, credits to the original creator of _The Broken Script_
 - Libs disguises
 - The resource pack provided
 - Denizen script
-- Minecraft version **1.21.3 or lower.**
+- Minecraft version **1.21.7 or 1.21.8**
 
 ---
 
@@ -20,6 +20,7 @@ Plugin can:
 - Grief bases  
 - **Crash** Minecraft clients
 - Make you unable to exit the server
+- Ban players
 
 ---
 
@@ -27,11 +28,12 @@ Plugin can:
 
 1. Install Denizen script and drop it into your plugins folder.
 2. Set up script folder, If missing, create: plugins/Denizen/scripts/
-3. Add Null.dsc Put Null.dsc inside the scripts folder. Optionally, edit nullcrash to insert a crash of your liking.
+3. Put Null.dsc inside the scripts folder. Optionally, edit nullcrash to insert a crash of your liking.
 4. Install Lib's Disguises and add it to the plugins folder
 5. Place the provided Generated folder into your server’s "world" directory.
 6. Start the server.
-7. Have fun! (And get scared maybe.)
+7. Install the provided resource pack on your client and join the server.
+8. Have fun! (And get scared maybe.)
 
 ---
 
