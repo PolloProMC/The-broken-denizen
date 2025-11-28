@@ -187,7 +187,8 @@ nullexist:
                     - define eventsperminute 1
             - if <util.random_chance[<[eventsperminute]>]>:
                 - execute as_server nullevent
-                - narrate "Event happening! average events per day is on: <[eventsperminute].mul[12].round>" targets:<server.online_ops>
+                - if <server.has_flag[nulldebug]>:
+                    - narrate "Event happening! average events per day is on: <[eventsperminute].mul[12].round>" targets:<server.online_ops>
             - if <server.flag[eventnull].mod[600]> == 0:
                 - flag server reputation:<list[GOOD|NORMAL|BAD].random>
 
@@ -223,6 +224,10 @@ nullexist:
         - if <server.has_flag[faraway]>:
             - foreach <server.flag[faraway]> as:far:
                 - execute as_server "disgplayer <[far].uuid> Player Timbothany setNameVisible false"
+        # ------------- Null. -------------
+        - if <server.has_flag[nullwatcher]>:
+            - foreach <server.flag[nullwatcher]> as:null:
+                - execute as_server "disgplayer <[null].uuid> Player yyy88 setName Null setDisplayedInTab false"
 
         on entity damaged:
         # ------------- Handle nullnocircuit command -------------
@@ -1651,6 +1656,7 @@ nullfaraway:
     - execute as_server "setblock <[block].x> <[block].y.add[1]> <[block].z> light[level=15]"
     - adjust <[target]> invulnerable:true
     - adjust <[target]> has_ai:false
+    - adjust <[target]> custom_name:Faraway
 
 nullr2:
     type: command
