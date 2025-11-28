@@ -38,12 +38,10 @@ nullexist:
             - foreach <server.flag[r2]> as:r2:
                 - if <[r2].has_flag[chaser]>:
                     - execute as_server "data modify entity <[r2].uuid> AngryAt set from entity <[r2].location.find_entities[player].within[100].get[1].uuid> UUID"
-                    - execute as_server "effect give <[r2].uuid> minecraft:speed infinite 2 true"
                     - adjust <[r2]> has_ai:true
-                    - wait 0.5s
-                    - adjust <[r2]> has_ai:false
-                - if <[r2].has_flag[r2angy]>:
+                - else if <[r2].has_flag[r2angy]>:
                     - adjust <[r2]> has_ai:true
+                    - execute as_server "effect give <[r2].uuid> minecraft:speed infinite 5 true"
         - if <server.has_flag[triggeredr2]>:
             - if <util.random_chance[18.21]>:
                 - execute as_server <list[nulltimeset day|nulltimeset midnight].random>
@@ -72,17 +70,13 @@ nullexist:
             - flag server falsegoneforever:++
             - if <server.flag[falsegoneforever]> >= 900:
                 - execute as_server "nullnofalsevillager"
-        - if !<server.has_flag[unsusvillager]> && <server.has_flag[circuitattacker]>:
-            - flag server circuitdespawn:++
-            - if <server.flag[circuitdespawn]> >= 70:
-                - execute as_server "nullnofalsevillager"
         # ------------- No peaceful difficulty & No circuit disguised. -------------
         - foreach <server.online_players> as:player:
             - if <[player].location.world.difficulty> == Peaceful:
                 - adjust <[player].location.world> difficulty:Easy
             - if <[player].location.y> < -50:
                 - execute as_server "effect give <[player].name> minecraft:blindness 3 255 true"
-        - if <server.has_flag[circuitdisguised]>:
+        - if <server.has_flag[circuit]>:
             - flag server despawnthedisg:++
             - if <server.flag[despawnthedisg]> >= 150:
                 - execute as_server "nullnodisguisedcircuit"
@@ -116,6 +110,62 @@ nullexist:
                     - kill <[invader]>
                     - wait 1t
                     - flag server nullinvaders:<-:<[invader]>
+        # ------------ Circuit chase -----------
+        - if <server.has_flag[circuitschasing]>:
+            - foreach <server.flag[circuitschasing]> as:circuit:
+                - flag <[circuit]> despawnmelol:++
+                - if <[circuit].flag[despawnmelol]> >= 20:
+                    - teleport <[circuit]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[torso]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[head]> <[circuit].location.below[400]>
+                    - kill <[circuit].flag[leftleg]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[leftarm]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[torso]>
+                    - kill <[circuit].flag[head]>
+                    - flag <[circuit]> leftleg:!
+                    - flag <[circuit]> rightleg:!
+                    - flag <[circuit]> leftarm:!
+                    - flag <[circuit]> rightarm:!
+                    - flag <[circuit]> torso:!
+                    - flag <[circuit]> head:!
+                    - kill <[circuit]>
+                    - wait 1t
+                    - flag server circuitschasing:<-:<[circuit]>
+                - repeat 20:
+                    - define speed 20
+                    - define x 40
+                    - define number <[value].mod[<[speed]>]>
+                    - define number2 <[value].mod[<[speed]>].div[2]>
+                    - define failsafe <[speed].sub[<[number]>]>
+                    - if <[number]> < <[speed].div[2]>:
+                        - look <[circuit].flag[leftleg]>|<[circuit].flag[rightarm]> yaw:<[circuit].location.yaw> pitch:<[number].mul[2].mul[<[x]>].div[<[speed].div[2]>].sub[<[x]>]>
+                        - look <[circuit].flag[rightleg]>|<[circuit].flag[leftarm]> yaw:<[circuit].location.yaw> pitch:<[number].mul[2].mul[<[x]>].div[<[speed].div[2]>].sub[<[x]>].mul[-1]>
+                    - else:
+                        - look <[circuit].flag[leftleg]>|<[circuit].flag[rightarm]> yaw:<[circuit].location.yaw> pitch:<[failsafe].mul[2].mul[<[x]>].div[<[speed].div[2]>].sub[<[x]>]>
+                        - look <[circuit].flag[rightleg]>|<[circuit].flag[leftarm]> yaw:<[circuit].location.yaw> pitch:<[failsafe].mul[2].mul[<[x]>].div[<[speed].div[2]>].sub[<[x]>].mul[-1]>
+                    - look <[circuit].flag[torso]> yaw:<[circuit].location.yaw> pitch:0
+                    - wait 1t
+        # ------------- Herobrine easter egg. -------------
+        - if <server.has_flag[thebrians]>:
+            - foreach <server.flag[thebrians]> as:hero:
+                - flag <[hero]> despawnmelol:++
+                - if <[hero].flag[despawnmelol]> > 20:
+                    - teleport <[hero]> <[hero].location.below[400]>
+                    - flag <[hero]> despawnmelol:!
+                    - flag server thebrians:<-:<[hero]>
+                    - kill <[hero]>
+        # ------------- Circuit mineshaft -------------
+        - if <server.has_flag[circuitshafting]>:
+            - foreach <server.flag[circuitshafting]> as:circuit:
+                - flag <[circuit]> despawnmelol:++
+                - if <[circuit].flag[despawnmelol]> >= 500:
+                    - execute as_server nullnocircuitmineshaft
         # ------------- Handle events and reputation. -------------
         - if <server.has_flag[null]>:
             - if !<server.has_flag[reputation]>:
@@ -136,22 +186,8 @@ nullexist:
                 - if <server.flag[reputation]> == BAD:
                     - define eventsperminute 1
             - if <util.random_chance[<[eventsperminute]>]>:
-                - define randomevent <list[nullwatch|nullsong|nullsteps|nulltitle|nullpotion|nulladvancement2|nullgoaway|nullhappyface|nullopengl|nullfall|nullhost|nulljumpscare|nullbreak|nullrandomlook|nullinventory|nullgoodluck|nullplaysound|nullbook|nullslowsong|nullfire|nulldisc11|nullfaraway|nullfreezetime|nulllightning|nullfalsevillager|nullbsod|nullflying|nullcircuitdisguised|nullnamemob|nullcircuit|nullstructure|nullrandomtext|nullwater|nullhungry|nulldenizenwarning|nullheartbeat|nulldoors|nullplacehello|nulljframe5|nullplacebase|nullinvadebase].random>
-                - if <server.has_flag[nulldebug]>:
-                    - narrate "Event happening! average events per day is on: <[eventsperminute].mul[12].round>, current event <[randomevent]> and reputation is <server.flag[reputation]>" targets:<server.online_ops>
-                - execute as_server <[randomevent]>
-                - if <server.flag[reputation]> == GOOD:
-                    - define maybechest <util.random_chance[10]>
-                    - if <[maybechest]>:
-                        - execute as_server nullgift
-                - define chance <util.random_chance[20]>
-                - if <server.flag[reputation]> == BAD:
-                    - define chance <util.random_chance[50]>
-                - if <[chance]>:
-                    - define randomentity <list[nullr2|nullblackthing|nullfaraway].random>
-                    - execute as_server <[randomentity]>
-                    - if <server.has_flag[nulldebug]>:
-                        - narrate "Oh no! an entity, current entity: <[randomentity]>" targets:<server.online_ops>
+                - execute as_server nullevent
+                - narrate "Event happening! average events per day is on: <[eventsperminute].mul[12].round>" targets:<server.online_ops>
             - if <server.flag[eventnull].mod[600]> == 0:
                 - flag server reputation:<list[GOOD|NORMAL|BAD].random>
 
@@ -183,14 +219,17 @@ nullexist:
                 - flag server blackthing:<-:<[thing]>
                 - wait 1t
                 - kill <[thing]>
+        # ------------- Faraway -------------
+        - if <server.has_flag[faraway]>:
+            - foreach <server.flag[faraway]> as:far:
+                - execute as_server "disgplayer <[far].uuid> Player Timbothany setNameVisible false"
 
         on entity damaged:
         # ------------- Handle nullnocircuit command -------------
-        - if !<context.damager.exists>:
-            - if <context.entity> == <server.flag[circuit]>:
-                - if !<server.has_flag[circuitdeath]>:
-                    - determine cancelled
-        - if <context.entity> == <server.flag[unsusvillager]>:
+        - if <server.has_flag[circuit]> && !<context.damager.exists> && <context.entity> == <server.flag[circuit]>:
+            - if !<server.has_flag[circuitdeath]>:
+                - determine cancelled
+        - if <server.has_flag[unsusvillager]> && <context.entity> == <server.flag[unsusvillager]>:
             - wait 1t
             - execute as_server "stopsound @a * minecraft:entity.villager.hurt"
             - playsound <context.entity.location> sound:entity_generic_hurt
@@ -199,6 +238,9 @@ nullexist:
         - if <context.entity.entity_type> == VILLAGER:
             - if <util.random_chance[50]>:
                 - adjust <context.entity> custom_name:TESTIFICATE
+        - if <context.entity.entity_type> matches zombie|skeleton|spider|creeper|zombie_villager|enderman && <server.has_flag[moonglitch]>:
+            - if <util.random_chance[50]>:
+                - determine cancelled
 
         on entity dies:
         # ------------- Handle circuit death -------------
@@ -209,63 +251,53 @@ nullexist:
                     - flag server circuit:!
         # ------------- Handle circuit disguised as villager.-------------
         on entity damages entity:
-        - if <context.entity> == <server.flag[unsusvillager]>:
+        - if <server.has_flag[unsusvillager]> && <context.entity> == <server.flag[unsusvillager]>:
             - if !<context.damager.is_player>:
                 - determine cancelled
         on entity damages player:
-        - if <context.damager> == <server.flag[circuitattacker]>:
-            - determine passively cancelled
-            - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages false"
-            - wait 1t
-            - execute as_server 'tellraw @a {"translate":"death.attack.player","with":["PolloProMC","Circuit"],"color":"white"}'
-            - wait 1t
-            - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages false"
-            - kill <context.entity>
-            - teleport <server.flag[circuitattacker]> <server.flag[circuitattacker].location.below[100]>
-            - kill <server.flag[circuitattacker]>
-            - wait 2s
-            - kick <context.entity> reason:<list[No more hiding.|No more running.].random>
-        # ------------- Circuit. -------------
-        - if <context.damager> == <server.flag[circuit]>:
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.circuit_jumpscare master <player.name> ~ ~ ~ 0.07"
-            - execute as_server "effect give <player.name> blindness 10 250 true"
-            - wait 1t
-            - execute as_server 'nullcrash <player.name>'
-            - teleport <server.flag[circuit]> <server.flag[circuit].location.below[100]>
-            - kill <server.flag[circuit]>
-            - wait 1t
-            - kick <context.entity> reason:Disconnected.
-        # ------------- Circuit disguised as null -------------
-        - if <context.damager> == <server.flag[circuitnull]>:
-            - ratelimit <context.entity> 2s
-            - if !<context.entity.has_flag[circuitwarning]>:
-                - flag <context.entity> circuitwarning
-                - execute as_server "execute as <context.entity.name> at <context.entity.name> run playsound minecraft:custom.circuitchase master <context.entity.name> ~ ~ ~ 0.07"
-                - execute as_server "execute as <context.entity.name> at <context.entity.name> run playsound minecraft:custom.circuit_jumpscare master <context.entity.name> ~ ~ ~ 0.07"
-                - repeat 500:
-                    - define yaw <context.entity.location.yaw>
-                    - define pitch <context.entity.location.pitch>
-                    - execute as_server "execute as <context.entity.name> at @s run tp @s ~ ~ ~ <[yaw].add[<list[<util.random.int[1].to[5]>|<util.random.int[-1].to[-5]>].random>]> <[pitch].add[<list[<util.random.int[1].to[5]>|<util.random.int[-1].to[-5]>].random>]>"
+        - if <server.has_flag[circuitschasing]>:
+            - foreach <server.flag[circuitschasing]> as:circuit:
+                - if <context.damager> == <[circuit]>:
+                    - determine passively cancelled
+                    - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages false"
                     - wait 1t
-                    - if !<server.has_flag[circuitnull]>:
-                        - stop
-                - teleport <server.flag[circuitnull]> <server.flag[circuitnull].location.below[400]>
-                - kill <server.flag[circuitnull]>
-                - flag server circuitnull:!
-                - flag <context.entity> broisrealangry:!
-                - flag <context.entity> circuitwarning:!
-            - else:
-                - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages false"
-                - kill <context.entity>
-                - execute as_server 'tellraw @a {"translate":"death.attack.player","with":["<context.entity.name>","Circuit"],"color":"white"}'
-                - wait 2t
-                - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages true"
-                - wait 1s
-                - teleport <server.flag[circuitnull]> <server.flag[circuitnull].location.below[400]>
-                - kill <server.flag[circuitnull]>
-                - flag server circuitnull:!
-                - flag <context.entity> broisrealangry:!
-                - flag <context.entity> circuitwarning:!
+                    - kill <context.entity>
+                    - execute as_server 'tellraw @a {"translate":"death.attack.player","with":["<context.entity.name>","Circuit"],"color":"white"}'
+                    - wait 1t
+                    - execute as_server "execute at <context.entity.name> run gamerule showDeathMessages true"
+                    - execute as_server "execute as <context.entity.name> at <context.entity.name> run playsound minecraft:custom.circuitchase master <context.entity.name> ~ ~ ~ 0.09"
+                    - teleport <[circuit]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[torso]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[head]> <[circuit].location.below[400]>
+                    - kill <[circuit].flag[leftleg]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[leftarm]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[torso]>
+                    - kill <[circuit].flag[head]>
+                    - flag <[circuit]> leftleg:!
+                    - flag <[circuit]> rightleg:!
+                    - flag <[circuit]> leftarm:!
+                    - flag <[circuit]> rightarm:!
+                    - flag <[circuit]> torso:!
+                    - flag <[circuit]> head:!
+                    - kill <[circuit]>
+                    - wait 1t
+                    - flag server circuitschasing:<-:<[circuit]>
+                    - wait 1s
+                    - kick <context.entity> reason:<list[No more hiding.|No more running.].random>
+        # ------------- Circuit disguised as null -------------
+        - if <server.has_flag[circuitnull]> && <context.damager> == <server.flag[circuitnull]>:
+            - ratelimit <context.entity> 2s
+            - execute as_server "nullcircuitchase <context.damager.location> <context.entity.name>"
+            - wait 1t
+            - teleport <server.flag[circuitnull]> <server.flag[circuitnull].location.below[400]>
+            - kill <server.flag[circuitnull]>
+            - flag server circuitnull:!
         # ------------- Null chase -------------
         - foreach <server.flag[nullchaser]> as:chaser:
             - if <context.damager> == <[chaser]>:
@@ -277,28 +309,23 @@ nullexist:
 
         on player damages entity:
         # ------------- Circuit -------------
-        - if <context.entity> == <server.flag[circuit]>:
+        - if <server.has_flag[circuit]> && <context.entity> == <server.flag[circuit]>:
             - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.youwillregretthat master <player.name> ~ ~ ~ 0.7"
             - wait 2s
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.circuitchase master <player.name> ~ ~ ~ 0.09"
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.nullchase master <player.name> ~ ~ ~ 0.4"
-            - execute as_server "effect give <server.flag[circuit].uuid> minecraft:speed infinite 2 true"
-        # ------------- False villager -------------
-        - if <context.entity> == <server.flag[unsusvillager]>:
-            - execute as_server "gamemode survival <player.name>"
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.circuit_jumpscare master <player.name> ~ ~ ~ 0.07"
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.circuitchase master <player.name> ~ ~ ~ 0.09"
-            - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.nullchase master <player.name> ~ ~ ~ 0.4"
-            - teleport <server.flag[circuitattacker]> <server.flag[unsusvillager].location>
+            - execute as_server "nullcircuitchase <server.flag[circuit].location> <player.name>"
             - wait 1t
-            - teleport <server.flag[unsusvillager]> <server.flag[unsusvillager].location.above[100]>
+            - teleport <server.flag[circuit]> <server.flag[circuit].location.below[400]>
+            - kill <server.flag[circuit]>
+            - flag server circuit:!
+        # ------------- False villager -------------
+        - if <server.has_flag[unsusvillager]> && <context.entity> == <server.flag[unsusvillager]>:
+            - execute as_server "gamemode survival <player.name>"
+            - execute as_server "nullcircuitchase <server.flag[unsusvillager].location> <player.name>"
+            - wait 1t
+            - teleport <server.flag[unsusvillager]> <server.flag[unsusvillager].location.below[400]>
             - kill <server.flag[unsusvillager]>
             - wait 1t
             - flag server unsusvillager:!
-            - adjust <server.flag[circuitattacker]> has_ai:true
-            - execute as_server "data modify entity <server.flag[circuitattacker].uuid> AngryAt set from entity <player.uuid> UUID"
-            - execute as_server "effect give <server.flag[circuitattacker].uuid> minecraft:speed infinite 2 true"
-            - spawn lightning_bolt <player.location>
 
         on player joins:
         # ------------- Warning and VHS effects -------------
@@ -308,10 +335,11 @@ nullexist:
         - if <server.has_flag[moonglitch]>:
             - execute as_server "pvdc setonline 2"
         - else:
-            - execute as_server "pvdc setonline 32"
+            - execute as_server "pvdc setonline 12"
         - if <player.has_flag[boots]>:
             - inventory set o:<player.flag[boots]> d:<player.inventory> slot:BOOTS
         - if !<player.has_flag[removevhs]>:
+            - wait 1t
             - fakeequip <player> head:carved_pumpkin
         - execute as_server "attribute <player.name> minecraft:attack_speed base set 1000"
         - if <player.name> == null:
@@ -355,6 +383,8 @@ nullexist:
             - if <[itemname]> == <white>name.revuxor or <player.inventory.slot[offhand].display> == <white>name.revuxor:
                 - determine passively cancelled
                 - execute as_server "clear <player.name> minecraft:structure_void 1"
+        - if <[item]> == flint_and_steel or <player.inventory.slot[offhand].material.name> == flint_and_steel:
+            - if <context.location.material.name> == netherrack && <context.location.below[1].material.name> == mossy_cobblestone
 
         on player places block:
         - define item <player.item_in_hand.material.name>
@@ -378,9 +408,6 @@ nullexist:
                 - flag server triggeredr2:!
                 - flag <player> theangryone:!
                 - flag <player> r2despawn:!
-        # ------------- Circuit -------------
-        - if <player.has_flag[broisrealangry]>:
-            - flag <player> broisrealangry:!
 
         on player quits:
         # ------------- R2 -------------
@@ -395,7 +422,7 @@ nullexist:
             - flag server triggeredr2:!
             - flag <player> theangryone:!
         # ------------- Null is here mode -------------
-        - if <player> == <server.flag[oneofus]>:
+        - if <server.has_flag[oneofus]> && <player> == <server.flag[oneofus]>:
             - if <player.has_flag[oneofusdied]>:
                 - flag <player> oneofusdied:!
                 - stop
@@ -408,17 +435,6 @@ nullexist:
             - flag server nullwatch:!
             - wait 1s
             - adjust <server.flag[null]> visible:false
-        # ------------- Circuit -------------
-        - if <player.has_flag[broisrealangry]>:
-            - execute as_server "execute at <player.name> run gamerule showDeathMessages false"
-            - kill <player>
-            - execute as_server 'tellraw @a {"translate":"death.attack.player","with":["<player.name>","Circuit"],"color":"white"}'
-            - execute as_server "execute at <player.name> run gamerule showDeathMessages true"
-            - flag <player> broisrealangry:!
-            - wait 1s
-            - teleport <server.flag[circuitnull]> <server.flag[circuitnull].location.below[400]>
-            - kill <server.flag[circuitnull]>
-            - flag server circuitnull:!
         # ------------- Handle names. -------------
         - if <player.name> == null:
             - determine none
@@ -475,6 +491,7 @@ nullexist:
 
         # ------------- Hello block -------------
         on player breaks brown_stained_glass:
+        - determine passively NOTHING
         - define newblock <context.location>
         - wait 1t
         - execute as_server 'setblock <[newblock].x> <[newblock].y> <[newblock].z> minecraft:structure_block[mode=load]{author:"?",ignoreEntities:1b,integrity:1.0f,metadata:"",mirror:"NONE",mode:"LOAD",name:"minecraft:magmacross",posX:0,posY:0,posZ:0,powered:0b,rotation:"NONE",seed:0L,showair:0b,showboundingbox:1b,sizeX:6,sizeY:6,sizeZ:6}'
@@ -488,17 +505,15 @@ nullexist:
         - waituntil rate:1s !<world[world].is_day>
         - execute as_server "nullhost"
 
-        on player damages bedrock with:stone_pickaxe|iron_pickaxe|diamond_pickaxe:
+        on player damages bedrock with:stone_pickaxe|iron_pickaxe|diamond_pickaxe|netherite_pickaxe:
         # ------------- Breakeable bedrock. -------------
         - if !<player.has_flag[breakthebedrock]>:
             - flag <player> breakthebedrock:0
         - blockcrack <context.location> progress:1
         - repeat 120:
-            - flag <player> breakthebedrock:++ expire:2t
-            - if <player.cursor_on> != <context.location>:
+            - if <player.cursor_on> != <context.location> or <player.location.distance[<context.location>]> > 4.5:
                 - blockcrack <context.location> progress:0
                 - stop
-            - wait 1t
             - if <[value]> == 10:
                 - blockcrack <context.location> progress:2
             - if <[value]> == 20:
@@ -517,8 +532,9 @@ nullexist:
                 - blockcrack <context.location> progress:9
             - if <[value]> == 90:
                 - blockcrack <context.location> progress:10
-            - if <player.flag[breakthebedrock]> == 100:
-                - execute as_server "setblock <context.location.x> <context.location.y> <context.location.z> air destroy"
+            - if <[value]> >= 100:
+                - execute as_server "execute at <player.name> run setblock <context.location.x> <context.location.y> <context.location.z> air destroy"
+            - wait 1t
 
         on player drops item:
         # ------------- "help" inventory. -------------
@@ -536,6 +552,7 @@ nullexist:
         on player closes inventory:
         - if <player.has_flag[inventoryfreeze]>:
             - flag <player> inventoryfreeze:!
+
 
         on villager changes profession:
         - if <server.flag[falsevillager].exists>:
@@ -569,7 +586,7 @@ nullexist:
                 - announce "<&lt>Null<&gt> err.type=null.freedom"
                 - playsound <player> sound:ambient.cave pitch:0.5
             - else if <context.message> == null:
-                - ratelimit <player> 6s
+                - ratelimit <player> 8s
                 - wait 5s
                 - announce "<&lt>Null<&gt> The end is nigh."
                 - wait 1s
@@ -666,17 +683,21 @@ nullticktasks:
         - if <server.has_flag[blackthing]>:
             - foreach <server.flag[blackthing]> as:thething:
                 - execute as_server "execute at <[thething].uuid> run particle block_marker{block_state:{Name:black_concrete}} ~ ~1 ~ 1.5 1.5 1.5 0 1"
-                - hurt 2 <[thething].location.find_entities.within[3]>
-                - if <[thething].location.find_blocks[water].within[3].exists>:
+                - if <[thething].location.find_entities.within[3].size> > 0:
+                    - hurt 2 <[thething].location.find_entities.within[3]>
+                - if <[thething].location.find_blocks[water].within[3].size> > 0:
                     - define water <[thething].location.find_blocks[water].within[3]>
                     - modifyblock <[water]> cobblestone
                     - wait 1t
         # ------------- R2 -------------
         - if <server.has_flag[r2]>:
             - foreach <server.flag[r2]> as:r2:
-                - execute as_server "execute as <[r2].flag[thearmor].uuid> at @s run tp @s <list[^ ^ ^0.3|^ ^0.3 ^|^0.3 ^ ^|^ ^ ^-0.3|^ ^-0.3 ^|^-0.3 ^ ^].random> facing entity @a[sort=nearest,limit=1]"
+                - execute as_server "execute as <[r2].flag[thearmor].uuid> at @s run tp @s <list[^ ^ ^0.2|^ ^0.2 ^|^0.2 ^ ^|^ ^ ^-0.2|^ ^-0.2 ^|^-0.2 ^ ^].random> facing entity @a[sort=nearest,limit=1]"
                 - wait 1t
-                - execute as_server "execute as <[r2].flag[thearmor].uuid> at @s run tp @s <[r2].location.x> <[r2].location.y> <[r2].location.z> facing entity @a[sort=nearest,limit=1]"
+                - execute as_server "execute as <[r2].flag[thearmor].uuid> at @s run tp @s <[r2].location.above[2].x> <[r2].location.above[2].y> <[r2].location.above[2].z> facing entity @a[sort=nearest,limit=1]"
+                - if <[r2].location.find_blocks[water].within[3].size> > 0:
+                    - define water <[r2].location.find_blocks[water].within[3]>
+                    - modifyblock <[water]> cobblestone
                 - if <world[world].is_day> && !<[r2].has_flag[r2angy]>:
                     - execute as_server "execute at <[r2].uuid> run particle block_marker{block_state:{Name:black_concrete}} ~ ~1 ~ 0.7 1.5 0.7 0 30"
                     - teleport <[r2]> <[r2].location.down[400]>
@@ -688,13 +709,13 @@ nullticktasks:
                     - flag server r2:<-:<[r2]>
                     - flag server triggeredr2:!
         # ------------- Nothingiswatching -------------
-        - if <server.has_flag[thewatchers]>:
+        - if <server.has_flag[thewatchers]> && <server.flag[thewatchers].size> > 0:
             - foreach <server.flag[thewatchers]> as:nothing:
                 - execute as_server "execute as <[nothing].flag[litnothing].uuid> at @s run tp @s <[nothing].location.x> <[nothing].location.above[3].y> <[nothing].location.z> facing entity @a[sort=nearest,limit=1]"
                 - execute as_server "data modify entity <[nothing].uuid> AngryAt set from entity <[nothing].location.find_entities[player].within[100].get[1].uuid> UUID"
                 - define litnothing <[nothing].flag[litnothing]>
                 - foreach <server.online_players> as:player:
-                    - if <[player].location.distance[<[nothing].location>]> <= 10 or <[player].target.exists> && <[player].target> == <[nothing]>:
+                    - if <[player].location.world> == <[nothing].location.world> && <[player].location.distance[<[nothing].location>]> <= 10 or <[player].target.exists> && <[player].target> == <[nothing]>:
                         - define nothingloc <[nothing].location>
                         - teleport <[nothing]> <[nothing].location.below[400]>
                         - teleport <[litnothing]> <[nothing].location.below[400]>
@@ -706,10 +727,37 @@ nullticktasks:
                             - execute as_server "nullnothingchase <[nothingloc]> <[player].name>"
                         - else:
                             - spawn lightning_bolt <[nothingloc]>
+        # ------------- Circuit chase -------------
+        - if <server.has_flag[circuitschasing]>:
+            - foreach <server.flag[circuitschasing]> as:circuit:
+                - execute as_server "execute as <[circuit].flag[leftleg].uuid> at @s run tp @s <[circuit].location.above[3].left[0.3].x> <[circuit].location.above[3].left[0.3].y> <[circuit].location.above[3].left[0.3].z>"
+                - execute as_server "execute as <[circuit].flag[rightleg].uuid> at @s run tp @s <[circuit].location.above[3].left[-0.2].x> <[circuit].location.above[3].left[-0.2].y> <[circuit].location.above[3].left[-0.2].z>"
+                - execute as_server "execute as <[circuit].flag[leftarm].uuid> at @s run tp @s <[circuit].location.above[6].left[0.7].x> <[circuit].location.above[6].left[0.7].y> <[circuit].location.above[6].left[0.7].z>"
+                - execute as_server "execute as <[circuit].flag[rightarm].uuid> at @s run tp @s <[circuit].location.above[6].left[-0.7].x> <[circuit].location.above[6].left[-0.7].y> <[circuit].location.above[6].left[-0.7].z>"
+                - execute as_server "execute as <[circuit].flag[torso].uuid> at @s run tp @s <[circuit].location.above[6].x> <[circuit].location.above[6].y> <[circuit].location.above[6].z>"
+                - execute as_server "execute as <[circuit].flag[head].uuid> at @s run tp @s <[circuit].location.above[6.8].x> <[circuit].location.above[6.8].y> <[circuit].location.above[6.8].z> facing entity @a[sort=nearest,limit=1]"
+                - execute as_server "execute at <[circuit].uuid> run fill ~2 ~2 ~2 ~-2 ~1 ~-2 air destroy"
+                - if <[circuit].location.find_blocks[water].within[5].size> > 0:
+                    - define water <[circuit].location.find_blocks[water].within[5]>
+                    - modifyblock <[water]> cobblestone
+                - if <[circuit].location.find_entities[*_boat].within[20].size> > 0:
+                    - teleport <[circuit].location.find_entities[*_boat].within[20]> <[circuit].location.find_entities[*_boat].within[20].get[1].location.below[600]>
+        # ------------- Circuit Mineshaft -------------
+        - if <server.has_flag[circuitshafting]>:
+            - foreach <server.flag[circuitshafting]> as:circuit:
+                - execute as_server "execute as <[circuit].flag[leftleg].uuid> at @s run tp @s <[circuit].location.above[3].left[0.3].x> <[circuit].location.above[3].left[0.3].y> <[circuit].location.above[3].left[0.3].z>"
+                - execute as_server "execute as <[circuit].flag[rightleg].uuid> at @s run tp @s <[circuit].location.above[3].left[-0.2].x> <[circuit].location.above[3].left[-0.2].y> <[circuit].location.above[3].left[-0.2].z>"
+                - execute as_server "execute as <[circuit].flag[leftarm].uuid> at @s run tp @s <[circuit].location.forward_flat[3].left[0.7].above[3].x> <[circuit].location.forward_flat[3].left[0.7].above[3].y> <[circuit].location.forward_flat[3].left[0.7].above[3].z>"
+                - execute as_server "execute as <[circuit].flag[rightarm].uuid> at @s run tp @s <[circuit].location.forward_flat[3].left[-0.7].above[3].x> <[circuit].location.forward_flat[3].left[-0.7].above[3].y> <[circuit].location.forward_flat[3].left[-0.7].above[3].z>"
+                - execute as_server "execute as <[circuit].flag[torso].uuid> at @s run tp @s <[circuit].location.forward_flat[3].above[3].x> <[circuit].location.forward_flat[3].above[3].y> <[circuit].location.forward_flat[3].above[3].z>"
+                - execute as_server "execute as <[circuit].flag[head].uuid> at @s run tp @s <[circuit].location.forward_flat[3.8].above[2.5].x> <[circuit].location.forward_flat[3.8].above[2.5].y> <[circuit].location.forward_flat[3.8].above[2.5].z>"
+                - look <[circuit]>|<[circuit].flag[head]> <[circuit].location.find_entities[player].within[1000].get[1].location>
+                - look <[circuit].flag[torso]> pitch:85 yaw:<[circuit].location.yaw>
+                - look <[circuit].flag[leftleg]>|<[circuit].flag[rightleg]>|<[circuit].flag[leftarm]>|<[circuit].flag[rightarm]> pitch:20 yaw:<[circuit].location.yaw>
         # ------------- Null is here mode -------------
         - if <server.has_flag[oneofus]>:
             - execute as_server "execute as <server.flag[nullishere].uuid> at @s run tp @s ^ ^ ^1 facing entity <server.flag[oneofus].name> feet"
-            - if <server.flag[oneofus].location.distance[<server.flag[nullishere].location>]> <= 2:
+            - if <server.flag[oneofus].location.world> == <server.flag[nullishere].location.world> && <server.flag[oneofus].location.distance[<server.flag[nullishere].location>]> <= 2:
                 - ratelimit <server.flag[oneofus]> 3s
                 - execute as_server "execute at <server.flag[oneofus].name> run gamerule showDeathMessages false"
                 - kill <server.flag[oneofus]>
@@ -734,6 +782,13 @@ nullticktasks:
         # ------------- Null watching -------------
         - if <server.has_flag[nullwatcher]>:
             - foreach <server.flag[nullwatcher]> as:null:
+                - if <[null].location.find_entities[arrow].within[3].size> > 0:
+                    - execute as_server "nullchase <[null].location> <[null].location.find_entities[Player].within[1000].get[1].name>"
+                    - wait 1t
+                    - teleport <[null]> <[null].location.below[400]>
+                    - wait 1t
+                    - kill <[null]>
+                    - flag server nullwatcher:<-:<[null]>
                 - if <world[world].is_day>:
                     - teleport <[null]> <[null].location.below[400]>
                     - wait 1t
@@ -752,7 +807,7 @@ nullticktasks:
         - if <server.has_flag[nullchaser]>:
             - foreach <server.flag[nullchaser]> as:chaser:
                 - execute as_server "execute at <[chaser].uuid> run particle block_marker{block_state:{Name:black_concrete}} ~ ~1 ~ 2 2 2 0 1"
-                - if <[chaser].location.find_blocks[water].within[3].exists>:
+                - if <[chaser].location.find_blocks[water].within[3].size> > 0:
                     - define water <[chaser].location.find_blocks[water].within[3]>
                     - modifyblock <[water]> mossy_cobblestone
         # ------------- Nothingiswatching chase -------------
@@ -760,11 +815,21 @@ nullticktasks:
             - foreach <server.flag[nothingchaser]> as:nothing:
                 - execute as_server "execute at <[nothing].uuid> run fill ~2 ~2 ~2 ~-2 ~1 ~-2 air destroy"
                 - execute as_server "execute as <[nothing].flag[litnothing].uuid> at @s run tp @s <list[^ ^ ^0.3|^ ^0.3 ^|^0.3 ^ ^|^ ^ ^-0.3|^ ^-0.3 ^|^-0.3 ^ ^].random> facing entity @a[sort=nearest,limit=1]"
-                - if <[nothing].location.find_blocks[water].within[3].exists>:
+                - if <[nothing].location.find_blocks[water].within[3].size> > 0:
                     - define water <[nothing].location.find_blocks[water].within[3]>
                     - modifyblock <[water]> cobblestone
                 - wait 1t
                 - execute as_server "execute as <[nothing].flag[litnothing].uuid> at @s run tp @s <[nothing].location.x> <[nothing].location.above[3].y> <[nothing].location.z> facing entity @a[sort=nearest,limit=1]"
+        # ------------- Curved -------------
+        - if <server.has_flag[curving]>:
+            - foreach <server.flag[curving]> as:curved:
+                - execute as_server "ride <[curved].flag[armor].uuid> mount <[curved].flag[facelol].uuid>"
+                - execute as_server "execute as <[curved].flag[facelol].uuid> at @s run tp @s <list[^ ^ ^0.3|^ ^0.3 ^|^0.3 ^ ^|^ ^ ^0.7|^ ^0.7 ^|^0.7 ^ ^|^ ^ ^-0.3|^ ^-0.3 ^|^-0.3 ^ ^|^ ^ ^-0.7|^ ^-0.7 ^|^-0.7 ^ ^].random>"
+                - look <[curved].flag[facelol]> pitch:<[curved].location.pitch> yaw:<[curved].location.yaw>
+                - playsound <server.online_players> custom custom.curved_spawn
+                - wait 1t
+                - playsound <server.online_players> custom custom.curved_spawn
+                - execute as_server "execute as <[curved].flag[facelol].uuid> at @s run tp @s <[curved].location.x> <[curved].location.y> <[curved].location.z>"
 
         on player walks:
         # ------------- Prevent looking at someone else while on nullishere phase (Unused) -------------
@@ -776,7 +841,7 @@ nullticktasks:
         - if <server.has_flag[nullwatcher]>:
             - foreach <server.flag[nullwatcher]> as:null:
                 - execute as_server "execute as <[null].uuid> at @s run tp @s ~ ~ ~ facing entity @a[limit=1,sort=nearest] feet"
-                - if <player.location.distance[<[null].location>]> <= 4:
+                - if <player.location.world> == <[null].location.world> && <player.location.distance[<[null].location>]> <= 4:
                     - define random <util.random.int[1].to[4]>
                     - if <[random]> == 1:
                         - execute as_server "effect give <player.name> minecraft:blindness 20 1"
@@ -802,8 +867,9 @@ nullticktasks:
         # ------------- Handle faraway -------------
         - if <server.has_flag[faraway]>:
             - foreach <server.flag[faraway]> as:far:
-                - execute as_server "execute as <[far].uuid> at @s run tp @s ~ ~ ~ facing entity @a[limit=1,sort=nearest] feet"
-                - if <player.location.distance[<[far].location>]> <= 25:
+                - if <[far].location.find_entities[player].within[1000].size> >= 1:
+                    - look <[far]> <[far].location.find_entities[player].within[1000].get[1].location.above[1]>
+                - if <player.location.world> == <[far].location.world> && <player.location.distance[<[far].location>]> <= 25:
                     - ratelimit <player> 2s
                     - execute as_server "execute as <player.name> at @s run teleport <player.name> ~ ~ ~ <util.random.int[0].to[360]> <util.random.int[0].to[90]>"
                     - execute as_server "effect give <player.name> minecraft:blindness 100 100 true"
@@ -827,8 +893,7 @@ nullticktasks:
         # ------------- Handle R2 -------------
         - if <server.has_flag[r2]>:
             - foreach <server.flag[r2]> as:r2:
-                - execute as_server "effect give <[r2].uuid> minecraft:speed infinite 5 true"
-                - if <player.location.distance[<[r2].location>]> <= 5:
+                - if <player.location.world> == <[r2].location.world> && <player.location.distance[<[r2].location>]> <= 5:
                     - if <server.has_flag[spawningr2]>:
                         - stop
                     - if !<player.has_flag[theangryone]>:
@@ -887,18 +952,18 @@ nullticktasks:
         - if <server.has_flag[circuit]>:
             - if <player.location.world.name> != <server.flag[circuit].location.world.name>:
                 - stop
-            - if <player.location.distance[<server.flag[circuit].location>]> <= 4:
+            - if <player.location.world> == <server.flag[circuit].location.world> && <player.location.distance[<server.flag[circuit].location>]> <= 4:
                 - ratelimit <player> 1m
                 - if <player.name> == <server.flag[circuit].name>:
-                    - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.circuitchase master <player.name> ~ ~ ~ 0.1"
-                    - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.nullchase master <player.name> ~ ~ ~ 0.4"
-                    - execute as_server "data modify entity <server.flag[circuit].uuid> AngryAt set from entity <player.uuid> UUID"
-                    - execute as_server "effect give <server.flag[circuit].uuid> minecraft:speed infinite 2 true"
+                    - execute as_server "nullcircuitchase <server.flag[circuit].location> <player.name>"
+                    - teleport <server.flag[circuit]> <server.flag[circuit].location.below[400]>
+                    - kill <server.flag[circuit]>
+                    - flag server circuit:!
                     - stop
                 - narrate "<&lt><server.flag[circuit].name><&gt> <list[hey|do you have some food?|i'm lost|where's the base].random>" targets:<player>
         # ------------- Handle Xxram2diexX -------------
         - if <server.has_flag[ram2die]>:
-            - if <player.location.distance[<server.flag[ram2die].location>]> <= 20:
+            - if <player.location.world> == <server.flag[ram2die].location.world> && <player.location.distance[<server.flag[ram2die].location>]> <= 20:
                 - ratelimit <player> 3s
                 - execute as_server "nullchase <server.flag[ram2die].location> <player.name>"
                 - wait 1t
@@ -909,26 +974,17 @@ nullticktasks:
         # ------------- Handle Null flying. -------------
         - foreach <server.flag[nullflying]> as:null:
             - execute as_server "execute as <[null].uuid> at @s run tp @s ~ ~ ~ facing entity @a[limit=1,sort=nearest] feet"
-            - if <player.location.distance[<[null].location>]> < 20:
+            - if <player.location.world> == <[null].location.world> && <player.location.distance[<[null].location>]> < 20:
                 - teleport <[null]> <[null].location.below[400]>
                 - hurt <util.random.int[1].to[10]> <player>
                 - wait 1t
                 - kill <[null]>
                 - flag server nullflying:<-:<[null]>
-        # ------------- Handle circuit -------------
-        - if <player.has_flag[circuitwarning]>:
-            - if !<player.has_flag[inventoryisclosing]>:
-                - flag <player> inventoryisclosing expire:25s
-                - while <player.has_flag[broisrealangry]>:
-                    - inventory close
-                    - wait 1t
-            - else:
-                - stop
         # ------------- Handle Null Invading base -------------
         - if <server.has_flag[nullinvaders]>:
             - foreach <server.flag[nullinvaders]> as:invade:
                 - execute as_server "execute as <[invade].uuid> at @s run tp @s ~ ~ ~ facing entity @a[limit=1,sort=nearest] feet"
-                - if <player.location.distance[<[invade].location>]> < 7.5:
+                - if <player.location.world> == <[invade].location.world> && <player.location.distance[<[invade].location>]> < 7.5:
                     - ratelimit <player> 1s
                     - if <util.random_chance[70]>:
                         - execute as_server "execute as <player.name> at <player.name> run playsound minecraft:custom.textmadness1 master <player.name> ~ ~ ~ 1"
@@ -949,7 +1005,60 @@ nullticktasks:
                         - teleport <[invade]> <[invade].location.below[400]>
                         - kill <[invade]>
                         - flag server nullinvaders:<-:<[invade]>
-        - if <player.location.find_blocks[deepslate].within[9].exists>:
+        # ------------- Handle circuit -------------
+        - if <player.has_flag[circuitischasing]> && !<player.has_flag[dontspamthis]>:
+            - flag <player> dontspamthis
+            - while <player.flag[circuitischasing].location.exists>:
+                - inventory close
+                - wait 1t
+            - flag <player> circuitischasing:!
+            - flag <player> dontspamthis:!
+        # ------------- Herobrine -------------
+        - if <server.has_flag[thebrians]>:
+            - foreach <server.flag[thebrians]> as:hero:
+                - look <[hero]> <[hero].location.find_entities[player].within[1000].get[1].location.above[1]>
+                - if <player.location.distance[<[hero].location>]> < 35:
+                    - teleport <[hero]> <[hero].location.below[400]>
+                    - flag <[hero]> despawnmelol:!
+                    - flag server thebrians:<-:<[hero]>
+                    - kill <[hero]>
+        # ------------- Circuit mineshaft -------------
+        - if <server.has_flag[circuitshafting]>:
+            - ratelimit <player> 0.5s
+            - foreach <server.flag[circuitshafting]> as:circuit:
+                - if <player.location.distance[<[circuit].location>]> <= 5:
+                    - if <util.random_chance[50]>:
+                        - execute as_server "effect give <player.name> minecraft:blindness 25 1 true"
+                        - execute as_server "nullcircuitchase <[circuit].location> <player.name>"
+                        - playsound <server.online_players> sound:ambient.cave
+                    - else:
+                        - execute as_server "nullcircuitchase <[circuit].location> <player.name>"
+                        - execute as_server "effect give <player.name> minecraft:darkness 3 1 true"
+                    - wait 1t
+                    - teleport <[circuit]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightleg]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[leftarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[rightarm]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[torso]> <[circuit].location.below[400]>
+                    - teleport <[circuit].flag[head]> <[circuit].location.below[400]>
+                    - kill <[circuit].flag[leftleg]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[leftarm]>
+                    - kill <[circuit].flag[rightarm]>
+                    - kill <[circuit].flag[torso]>
+                    - kill <[circuit].flag[head]>
+                    - flag <[circuit]> leftleg:!
+                    - flag <[circuit]> rightleg:!
+                    - flag <[circuit]> leftarm:!
+                    - flag <[circuit]> rightarm:!
+                    - flag <[circuit]> torso:!
+                    - flag <[circuit]> head:!
+                    - kill <[circuit]>
+                    - flag server circuitshafting:<-:<[circuit]>
+        # ------------- Deepslate -------------
+        - ratelimit <player> 0.5s
+        - if <player.location.find_blocks[deepslate].within[9].size> > 0:
             - modifyblock <player.location.find_blocks[deepslate].within[9]> stone
 
         on player right clicks *_bed:
@@ -1049,9 +1158,9 @@ nullsong:
     usage: /nullsong
     permission: null.song
     script:
-    - execute as_server "effect give @a minecraft:blindness 16 100"
-    - execute as_server "effect give @a minecraft:slowness 16 1"
-    - execute as_server "effect give @a minecraft:slow_falling 16 1"
+    - execute as_server "effect give @a minecraft:blindness 16 100 true"
+    - execute as_server "effect give @a minecraft:slowness 16 1 true"
+    - execute as_server "effect give @a minecraft:slow_falling 16 1 true"
     - wait 1s
     - execute as_server "nulltimeset midnight"
     - execute as_server "execute as @a at @s run playsound minecraft:custom.randomsong master @s ~ ~ ~ 100"
@@ -1136,6 +1245,21 @@ nullgoaway:
             - toast "Go away." icon:i@white_wool[components_patch=map@[minecraft:item_model=string:thebrokenscript:redobsidian;denizen:__data_version=4440]] targets:<[randomplayer]>
             - stop
 
+nullbrought:
+    type: command
+    name: nullbrought
+    description: You've brought it upon yourself.
+    usage: /nullbrought
+    permission: null.brought
+    script:
+    - define randomplayer <server.match_player[<context.args.get[1]>]>
+    - if <[randomplayer].has_flag[broughtit]>:
+        - stop
+    - announce "<element[<[randomplayer].name>].on_hover[<[randomplayer].name><n>Type: Player<n><[randomplayer].uuid>]> has completed the challenge <&5>[<element[You've brought it upon yourself.].on_hover[<&5>You've brought it upon yourself.<n>It was all your fault.]>]"
+    - flag <[randomplayer]> broughtit
+    - toast "You've brought it upon yourself." icon:i@structure_void[display=name.revuxor;components_patch=map@[minecraft:item_model=string:thebrokenscript:gore;denizen:__data_version=4440]] targets:<[randomplayer]> frame:challenge
+    - stop
+
 nullinvadebase:
     type: command
     name: nullinvadebase
@@ -1144,21 +1268,24 @@ nullinvadebase:
     permission: null.invadebase
     script:
     - foreach <server.online_players> as:player:
-        - if <[player].bed_spawn.exists>:
-            - if <[player].location.distance[<[player].bed_spawn>]> < 20:
-                - if <util.random_chance[50]>:
-                    - narrate <list[[{}]}|{[<&gt> null]}].random>
-                - if <util.random_chance[50]>:
-                    - stop
-            - spawn <[player].location.above[50]> villager save:nullinvade
-            - define nullinvade <entry[nullinvade].spawned_entity>
-            - adjust <[nullinvade]> has_ai:false
-            - adjust <[nullinvade]> invulnerable:true
-            - execute as_server "disgplayer <[nullinvade].uuid> Player yyy88 setName Null setDisplayedInTab false"
-            - flag server nullinvaders:->:<[nullinvade]>
-            - wait 1t
-            - teleport <[nullinvade]> <[player].bed_spawn>
-            - stop
+        - if <[player].calculated_bed_spawn.exists>:
+            - define playerslist:->:<[loop_index]>
+    - if <[playerslist].exists>:
+        - define player <[playerslist].random>
+        - if <[player].location.distance[<[player].bed_spawn>]> < 20:
+            - if <util.random_chance[50]>:
+                - narrate <list[[{}]}|{[<&gt> null]}].random> targets:<[player]>
+            - if <util.random_chance[50]>:
+                - stop
+        - spawn <[player].location.above[50]> villager save:nullinvade
+        - define nullinvade <entry[nullinvade].spawned_entity>
+        - adjust <[nullinvade]> has_ai:false
+        - adjust <[nullinvade]> invulnerable:true
+        - execute as_server "disgplayer <[nullinvade].uuid> Player yyy88 setName Null setDisplayedInTab false"
+        - flag server nullinvaders:->:<[nullinvade]>
+        - wait 1t
+        - teleport <[nullinvade]> <[player].calculated_bed_spawn>
+        - stop
 
 nullsummoned:
     type: command
@@ -1259,7 +1386,7 @@ nullHost:
     - define randomplayer <server.online_players.random>
     - spawn <[randomplayer].location.above[100]> villager save:ram2die
     - flag server ram2die:<entry[ram2die].spawned_entity>
-    - execute as_server "disgplayer <server.flag[ram2die].uuid> Player  xXram2d1eXx setName xXram2dieXx setDisplayedInTab false setNameVisible True"
+    - execute as_server "disgplayer <server.flag[ram2die].uuid> Player xXram2d1eXx setName xXram2dieXx setDisplayedInTab false setNameVisible True"
     - execute as_server "spreadplayers <world[world].spawn_location.x> <world[world].spawn_location.z> 1 2 false <server.flag[ram2die].uuid>"
     - wait 25s
     - announce "<&lt>xXram2dieXx<&gt> 48656c6c6f3f"
@@ -1546,19 +1673,13 @@ nullr2:
     - adjust <[r2]> visible:false
     - execute as_server "attribute <[r2].uuid> minecraft:step_height base set 1.5"
     - execute as_server "attribute <[r2].uuid> minecraft:jump_strength base set 0"
+    - execute as_server "attribute <[r2].uuid> minecraft:generic.attack_damage base set 13"
     - flag server r2:->:<[r2]>
     - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 20 20 false <[r2].uuid>"
-    - define yaw <[randomplayer].location.yaw>
-    - define pitch <[randomplayer].location.pitch>
-    - wait 1t
-    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ 0 0"
-    - flag <[randomplayer]> nomove
-    - wait 1t
-    - execute as_server 'execute at <[randomplayer].name> run summon armor_stand ~ ~ ~ {Invisible:1b,NoGravity:1b,Marker:0b,Pose:{RightArm:[-90f,0f,0f]},ShowArms:0b,equipment:{mainhand:{id:stick,components:{item_model:"thebrokenscript:error5"},count:1}},drop_chances:{mainhand:0f}}'
-    - wait 1t
-    - define armor_stand <[randomplayer].target>
-    - flag <[randomplayer]> nomove:!
-    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ <[yaw]> <[pitch]>"
+    - spawn item_display <[randomplayer].location.above[50]> save:thearmor
+    - define thearmor <entry[thearmor].spawned_entity>
+    - execute as_server 'execute as <[thearmor].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:error5"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server "execute as <[thearmor].uuid> run data merge entity @s {transformation:{scale:[ 6.0f, 6.0f, 1.0f]},interpolation_duration:0,interpolation_start:-6000}"
     - execute as_server "disgplayer <[r2].uuid> Player PolloProMC setNameVisible false setInvisible true"
     - execute as_server "item replace entity <[r2].uuid> weapon.mainhand with air"
     - adjust <[r2]> invulnerable:true
@@ -1568,7 +1689,7 @@ nullr2:
     - if <[advancement?]>:
         - execute as_server "nullhereiam"
     - flag server spawningr2:!
-    - flag <[r2]> thearmor:<[armor_stand]>
+    - flag <[r2]> thearmor:<[thearmor]>
     - define chaser <util.random_chance[50]>
     - if <[chaser]>:
         - flag <[r2]> chaser
@@ -1632,15 +1753,9 @@ nullfalsevillager:
             - define I:++
         - define block <[block].up[<[I]>]>
     - teleport <server.flag[unsusvillager]> <[block]>
-    - spawn <[randomplayer].location.above[50]> zombified_piglin save:circuitattacker
-    - flag server circuitattacker:<entry[circuitattacker].spawned_entity>
-    - execute as_server "disgplayer <server.flag[circuitattacker].uuid> Player yyy88 setName Circuit setNameVisible false"
-    - adjust <server.flag[circuitattacker]> custom_name:Circuit
-    - teleport <server.flag[circuitattacker]> <server.flag[unsusvillager].location.above[200]>
-    - adjust <server.flag[circuitattacker]> persistent:true
     - adjust <server.flag[unsusvillager]> invulnerable:false
-    - adjust <server.flag[circuitattacker]> invulnerable:true
-    - adjust <server.flag[circuitattacker]> has_ai:false
+    - execute as_server "attribute <server.flag[unsusvillager].uuid> minecraft:max_health base set 200"
+    - heal <server.flag[unsusvillager]> <server.flag[unsusvillager].health_max>
 
 nullbsod:
     type: command
@@ -1709,7 +1824,7 @@ nullcircuitdisguised:
         - define randomz <util.random.int[5].to[10]>
     - else:
         - define randomz <util.random.int[-5].to[-10]>
-    - spawn <[randomplayer].location.above[400]> zombified_piglin save:circuitdisguised
+    - spawn <[randomplayer].location.above[400]> villager save:circuitdisguised
     - define block <[randomplayer].location.add[<[randomx]>,0,<[randomz]>].block>
     - if <[block].material.name> == air:
         - define I 0
@@ -1724,7 +1839,7 @@ nullcircuitdisguised:
     - flag server circuit:<entry[circuitdisguised].spawned_entity>
     - teleport <server.flag[circuit]> <[block]>
     - define randomplayer2 <server.online_players.random.name>
-    - execute as_server "disgplayer <server.flag[circuit].uuid> Player <[randomplayer2]> setHelmet <[randomplayer].inventory.slot[HEAD].material.name> setChestplate <[randomplayer].inventory.slot[CHESTPLATE].material.name> setLeggings <[randomplayer].inventory.slot[LEGGINGS].material.name> setBoots <[randomplayer].inventory.slot[BOOTS].material.name>"
+    - execute as_server "disgplayer <server.flag[circuit].uuid> Player <[randomplayer2]> setHelmet <[randomplayer2].inventory.slot[HEAD].material.name> setChestplate <[randomplayer2].inventory.slot[CHESTPLATE].material.name> setLeggings <[randomplayer2].inventory.slot[LEGGINGS].material.name> setBoots <[randomplayer2].inventory.slot[BOOTS].material.name>"
     - adjust <server.flag[circuit]> custom_name:<[randomplayer2]>
     - adjust <server.flag[circuit]> persistent:true
 
@@ -1751,9 +1866,7 @@ nullishere:
     permission: null.ishere
     script:
     - waituntil !<server.has_flag[nullishere]> rate:1s
-    - define randomplayer <server.online_players.random>
-    - if <context.args.get[1].exists>:
-        - define randomplayer <server.match_player[<context.args.get[1]>]>
+    - define randomplayer <server.match_player[<context.args.get[1]>]>
     - define randomwhere <util.random.int[1].to[2]>
     - if <[randomwhere]> == 1:
         - define randomx 30
@@ -1772,7 +1885,6 @@ nullishere:
     - wait 1t
     - teleport <[null]> <[randomplayer].location.add[<[randomx]>,0,<[randomz]>]>
     - flag server oneofus:<[randomplayer]>
-    - flag server nullwatch
     - flag server nullishere:<[null]>
 
 nullcircuit:
@@ -1786,13 +1898,11 @@ nullcircuit:
     - if <[randomplayer].location.world.is_day>:
         - stop
     - execute as_server 'tellraw @a {"translate":"multiplayer.player.joined","with":["<[randomplayer].name>"],"color":"yellow"}'
-    - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ 0 0"
     - spawn <[randomplayer].location.above[50]> zombified_piglin save:circuitnull
     - flag server circuitnull:<entry[circuitnull].spawned_entity>
     - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 30 30 false <server.flag[circuitnull].uuid>"
     - if <[randomplayer].world.name> == world_nether:
         - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 30 30 under <[randomplayer].y> false <server.flag[circuitnull].uuid>"
-    - flag <[randomplayer]> nomove:!
     - execute as_server "execute at <[randomplayer].name> run tp <[randomplayer].name> ~ ~ ~ <[yaw]> <[pitch]>"
     - adjust <server.flag[circuitnull]> persistent:true
     - execute as_server "data modify entity <server.flag[circuitnull].uuid> AngryAt set from entity <[randomplayer].uuid> UUID"
@@ -1806,7 +1916,6 @@ nullcircuit:
     - adjust <server.flag[circuitnull]> invulnerable:true
     - adjust <server.flag[circuitnull]> persistent:true
     - adjust <server.flag[circuitnull]> custom_name:Circuit
-    - flag <[randomplayer]> broisrealangry
 
 nullendgame:
     type: command
@@ -1858,7 +1967,7 @@ nullstructure:
     - define randomplayer <server.online_players.random>
     - define howfar <util.random.int[30].to[100]>
     - define block <[randomplayer].location.backward_flat[<[howfar]>].block>
-    - define structure <list[house2|cavebase|trap1|house3|crossfly|generationbug1|heavenportal|clanbuildoverhaul|gorestructure|totem|burnfractal|carcas|trap2|crosses|magmacross|randomwoodstructure|fractal3|glassfractal].random>
+    - define structure <list[house2|cavebase|trap1|house3|crossfly|generationbug1|heavenportal|clanbuildoverhaul|gorestructure|totem|burn_fractal|carcas|trap2|crosses|magmacross|randomwoodstructure|fractal3|glassfractal].random>
     - if <context.args.get[1].exists>:
         - define structure <context.args.get[1]>
     - narrate <[structure]>
@@ -1983,17 +2092,6 @@ nulldoors:
         - define facing <[splitdoor1].get[2].to_lowercase>
         - modifyblock <[door]> oak_door[switched=true;direction=<[facing]>]
 
-nullplacehello:
-    type: command
-    name: nullplacehello
-    description: Hello.
-    usage: /nullplacehello
-    permission: null.placehello
-    script:
-    - define randomplayer <server.online_players.random>
-    - define door <[randomplayer].location.find_blocks[*_door].within[12].get[1]>
-    - modifyblock <[door]> brown_stained_glass
-
 nulljframe5:
     type: command
     name: nulljframe5
@@ -2002,7 +2100,7 @@ nulljframe5:
     permission: null.jframe5
     script:
     - foreach <server.online_players> as:player:
-        - if <[player].health> <= 0:
+        - if <[player].health> <= 0 or <[player].has_flag[boots]>:
             - foreach next
         - flag <[player]> boots:<[player].inventory.slot[boots]>
         - execute as_server 'item replace entity <[player].name> armor.feet with stick[minecraft:equippable={slot:feet,camera_overlay:"thebrokenscript:screen/frame5"}]'
@@ -2015,26 +2113,54 @@ nulljframe5:
 nullplacebase:
     type: command
     name: nullplacebase
-    description: black box
+    description: Me when null places
     usage: /nullplacebase
     permission: null.placebase
     script:
     - foreach <server.online_players> as:player:
         - if <[player].calculated_bed_spawn.exists>:
-            - define randomlist <list[NETHERRACK|REDSTONE_TORCH].random>
-            - define bedspawn <[player].calculated_bed_spawn>
-            - if <server.flag[reputation]> == GOOD:
-                - define randomlist <list[NETHERRACK|REDSTONE_TORCH|OAK_SIGN].random>
-            - else if <server.flag[reputation]> == BAD:
-                - define randomlist <list[NETHERRACK|REDSTONE_TORCH|LAVA|TNT].random>
-            - if <[randomlist]> == TNT:
-                - execute as_server "summon minecraft:tnt <[bedspawn].x> <[bedspawn].y> <[bedspawn].z> {fuse:0}"
-                - stop
-            - modifyblock <[bedspawn].block> <[randomlist]>
-            - if <[randomlist]> == OAK_SIGN:
-                - adjust <[bedspawn].block> "sign_contents:Nice house"
+            - define playerslist:->:<[loop_index]>
+    - if <[playerslist].exists>:
+        - define randomlist <list[NETHERRACK|REDSTONE_TORCH|BROWN_STAINED_GLASS].random>
+        - define player <server.online_players.get[<[playerslist].random>]>
+        - define bedspawn <[player].calculated_bed_spawn>
+        - if <server.flag[reputation]> == GOOD:
+            - define randomlist <list[NETHERRACK|REDSTONE_TORCH|BROWN_STAINED_GLASS|OAK_SIGN].random>
+        - else if <server.flag[reputation]> == BAD:
+            - define randomlist <list[NETHERRACK|REDSTONE_TORCH|BROWN_STAINED_GLASS|LAVA|TNT].random>
+        - if <[randomlist]> == TNT:
+            - execute as_server "summon minecraft:tnt <[bedspawn].x> <[bedspawn].y> <[bedspawn].z> {fuse:0}"
             - stop
+        - modifyblock <[bedspawn].block> <[randomlist]>
+        - if <[randomlist]> == OAK_SIGN:
+            - adjust <[bedspawn].block> "sign_contents:Nice house"
+        - stop
 
+nullplacesign:
+    type: command
+    name: nullplacesign
+    description: sign
+    usage: /nullplacesign
+    permission: null.placesign
+    script:
+    - define randomplayer <server.online_players.random>
+    - define howfar <util.random.int[30].to[100]>
+    - define block <[randomplayer].location.backward_flat[<[howfar]>].block>
+    - if <[block].material.name> == air:
+        - define I 0
+        - while <[block].down[<[I]>].material.name> == air:
+            - define I:++
+        - define newblock <[block].down[<[I].sub[1]>]>
+    - else if <[block].material.name> != air:
+        - define I 0
+        - while <[block].up[<[I]>].material.name> != air:
+            - define I:++
+        - define newblock <[block].up[<[I]>]>
+    - modifyblock <[newblock].block> oak_sign
+    - random:
+        - adjust <[newblock].block> sign_contents:<list[Can you help us?|We can hear you.|Can you see me?|I need your help|].random>
+        - adjust <[newblock].block> sign_contents:<list[null|null|null|null]>
+        - adjust <[newblock].block> sign_contents:<list[Follow the noise.|Follow the noise.|Follow the noise.|Follow the noise.]>
 nullchase:
     type: command
     name: nullchase
@@ -2133,6 +2259,186 @@ nullnothingchase:
             - execute as_server "nullcrash <[chased].name>"
         - wait 1t
 
+nullcircuitchase:
+    type: command
+    name: nullcircuitchase
+    description: Circuit
+    usage: /nullcircuitchase
+    permission: null.circuitchase
+    script:
+    - spawn zombified_piglin <context.args.get[1]> save:circuitchaser
+    - define circuitchaser <entry[circuitchaser].spawned_entity>
+    - adjust <[circuitchaser]> invulnerable:true
+    - define chased <server.match_player[<context.args.get[2]>]>
+    - execute as_server "disgplayer <[circuitchaser].uuid> Player PolloProMC setNameVisible false setInvisible true"
+    - execute as_server "effect give <[circuitchaser].uuid> minecraft:speed infinite 5 true"
+    - execute as_server "attribute <[circuitchaser].uuid> minecraft:step_height base set 1.5"
+    - execute as_server "attribute <[circuitchaser].uuid> minecraft:jump_strength base set 0"
+    - execute as_server "attribute <[circuitchaser].uuid> minecraft:attack_damage base set 50"
+    - execute as_server "attribute <[circuitchaser].uuid> minecraft:gravity base set 1000"
+    - adjust <[circuitchaser]> invulnerable:true
+    - adjust <[circuitchaser]> persistent:true
+    - adjust <[circuitchaser]> has_ai:true
+    - adjust <[circuitchaser]> visible:false
+    - adjust <[circuitchaser]> custom_name:Circuit
+    - spawn item_display <[circuitchaser].location.above[50]> save:leftleg
+    - spawn item_display <[circuitchaser].location.above[50]> save:rightleg
+    - spawn item_display <[circuitchaser].location.above[50]> save:leftarm
+    - spawn item_display <[circuitchaser].location.above[50]> save:rightarm
+    - spawn item_display <[circuitchaser].location.above[50]> save:torso
+    - spawn item_display <[circuitchaser].location.above[50]> save:head
+    - define leftleg <entry[leftleg].spawned_entity>
+    - define rightleg <entry[rightleg].spawned_entity>
+    - define leftarm <entry[leftarm].spawned_entity>
+    - define rightarm <entry[rightarm].spawned_entity>
+    - define torso <entry[torso].spawned_entity>
+    - define head <entry[head].spawned_entity>
+    - execute as_server 'execute as <[leftleg].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitleftleg"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[rightleg].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitrightleg"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[leftarm].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitleftarm"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[rightarm].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitrightarm"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[torso].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuittorso"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[head].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuithead"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server "execute as <[leftleg].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[rightleg].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[leftarm].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[rightarm].uuid> run data merge entity @s {transformation:{scale:[ -7.0f, 7.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[torso].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[head].uuid> run data merge entity @s {transformation:{scale:[ -3.0f, 3.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - flag <[circuitchaser]> leftleg:<[leftleg]>
+    - flag <[circuitchaser]> rightleg:<[rightleg]>
+    - flag <[circuitchaser]> leftarm:<[rightarm]>
+    - flag <[circuitchaser]> rightarm:<[leftarm]>
+    - flag <[circuitchaser]> torso:<[torso]>
+    - flag <[circuitchaser]> head:<[head]>
+    - execute as_server "execute as <[chased].name> at <[chased].name> run playsound minecraft:custom.circuit_jumpscare master <[chased].name> ~ ~ ~ 0.15"
+    - execute as_server "execute as <[chased].name> at <[chased].name> run playsound minecraft:custom.circuitchase master <[chased].name> ~ ~ ~ 0.15"
+    - execute as_server "execute as <[chased].name> at <[chased].name> run playsound minecraft:custom.nullchase master <[chased].name> ~ ~ ~ 0.4"
+    - flag server circuitschasing:->:<[circuitchaser]>
+    - flag <[chased]> circuitischasing:<[circuitchaser]>
+    - while <[circuitchaser].location.exists>:
+        - execute as_server "item replace entity <[circuitchaser].uuid> weapon.mainhand with air"
+        - look <[chased]> pitch:<[chased].location.pitch.add[<util.random.int[-3].to[3]>]> yaw:<[chased].location.yaw.add[<util.random.int[-3].to[3]>]>
+        - execute as_server "data modify entity <[circuitchaser].uuid> AngryAt set from entity <[chased].uuid> UUID"
+        - if <[loop_index].mod[45]> == 0:
+            - if <util.random_chance[70]>:
+                - execute as_server "playsound minecraft:custom.circuitchase master <[chased].name> ~ ~ ~ 0.05 0.5 1"
+            - if <util.random_chance[70]>:
+                - look <[chased]> <[circuitchaser].location>
+            - if <util.random_chance[70]>:
+                - execute as_server "nulltimeset midnight"
+                - execute as_server "effect give <[chased].name> minecraft:blindness 3 250 true"
+                - wait 0.5s
+                - execute as_server "effect clear <[chased].name> blindness"
+            - if <util.random_chance[70]>:
+                - execute as_server "nulltimeset day"
+        - wait 1t
+
+nullcircuitmineshaft:
+    type: command
+    name: nullcircuitmineshaft
+    description: Circuit
+    usage: /nullcircuitmineshaft
+    permission: null.circuitmineshaft
+    script:
+    - define randomplayer <server.online_players.random>
+    - if <server.has_flag[circuitshafting]> && <server.flag[circuitshafting].size> >= 1 or <[randomplayer].location.y> > 40 or <[randomplayer].location> < <[randomplayer].location.block.highest>:
+        - stop
+    - spawn villager <[randomplayer].location.above[50]> save:circuitmineshaft
+    - define circuitmineshaft <entry[circuitmineshaft].spawned_entity>
+    - adjust <[circuitmineshaft]> invulnerable:true
+    - execute as_server "disgplayer <[circuitmineshaft].uuid> Player PolloProMC setNameVisible false setInvisible true"
+    - adjust <[circuitmineshaft]> invulnerable:true
+    - adjust <[circuitmineshaft]> persistent:true
+    - adjust <[circuitmineshaft]> has_ai:false
+    - adjust <[circuitmineshaft]> visible:false
+    - adjust <[circuitmineshaft]> custom_name:Circuit_mineshaft
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:leftleg
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:rightleg
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:leftarm
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:rightarm
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:torso
+    - spawn item_display <[circuitmineshaft].location.above[50]> save:head
+    - define leftleg <entry[leftleg].spawned_entity>
+    - define rightleg <entry[rightleg].spawned_entity>
+    - define leftarm <entry[leftarm].spawned_entity>
+    - define rightarm <entry[rightarm].spawned_entity>
+    - define torso <entry[torso].spawned_entity>
+    - define head <entry[head].spawned_entity>
+    - execute as_server 'execute as <[leftleg].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitleftleg"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[rightleg].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitrightleg"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[leftarm].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitleftarm"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[rightarm].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuitrightarm"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[torso].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuittorso"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server 'execute as <[head].uuid> run data merge entity @s {item:{id:"minecraft:stick",count:1,components:{"minecraft:item_model":"thebrokenscript:circuithead"}},"transformation":"scale:[ 0.5f, 1.0f, 1.0f]"}'
+    - execute as_server "execute as <[leftleg].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[rightleg].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[leftarm].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[rightarm].uuid> run data merge entity @s {transformation:{scale:[ -7.0f, 7.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[torso].uuid> run data merge entity @s {transformation:{scale:[ -6.0f, 6.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - execute as_server "execute as <[head].uuid> run data merge entity @s {transformation:{scale:[ -3.0f, 3.0f, 0f]},interpolation_duration:0,interpolation_start:-6000}"
+    - flag <[circuitmineshaft]> leftleg:<[leftleg]>
+    - flag <[circuitmineshaft]> rightleg:<[rightleg]>
+    - flag <[circuitmineshaft]> leftarm:<[rightarm]>
+    - flag <[circuitmineshaft]> rightarm:<[leftarm]>
+    - flag <[circuitmineshaft]> torso:<[torso]>
+    - flag <[circuitmineshaft]> head:<[head]>
+    - flag server circuitshafting:->:<[circuitmineshaft]>
+    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 20 40 under 50 false <[circuitmineshaft].uuid>"
+    - playsound <server.online_players> sound:ambient.cave
+
+nullcurved:
+    type: command
+    name: nullcurved
+    description: DyeXD412
+    usage: /nullcurved
+    permission: null.curved
+    script:
+    - define randomplayer <server.online_players.random>
+    - spawn <[randomplayer].location.above[50]> husk save:curved
+    - adjust <entry[curved].spawned_entity> persistent:true
+    - spawn <[randomplayer].location.above[50]> armor_stand save:facelol
+    - spawn <[randomplayer].location.above[50]> item_display save:thethingthatshakes
+    - define curved <entry[curved].spawned_entity>
+    - define facelol <entry[facelol].spawned_entity>
+    - define shaky <entry[thethingthatshakes].spawned_entity>
+    - adjust <[curved]> invisible:true
+    - adjust <[curved]> visible:false
+    - adjust <[curved]> custom_name:DyeXD412
+    - execute as_server "attribute <[curved].uuid> minecraft:attack_damage base set 50"
+    - execute as_server "attribute <[curved].uuid> minecraft:movement_speed base set 0.4"
+    - execute as_server "disgplayer <[curved].uuid> Player PolloProMC setNameVisible false setInvisible true"
+    - execute as_server "disgplayer <[facelol].uuid> Player DyeXD412 setSneaking true setNameVisible false setInvisible false"
+    - execute as_server "ride <[facelol].uuid> mount <[shaky].uuid>"
+    - adjust <[facelol]> invulnerable:true
+    - adjust <[facelol]> gravity:false
+    - adjust <[facelol]> visible:false
+    - flag server curving:->:<[curved]>
+    - flag <[curved]> facelol:<[shaky]>
+    - flag <[curved]> armor:<[facelol]>
+    - playsound <server.online_players> custom custom.you_know_nothing pitch:0.5 volume:0.4
+    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 20 40 false <[curved].uuid>"
+
+nullherobrine:
+    type: command
+    name: nullherobrine
+    description: Herobrine.
+    usage: /nullherobrine
+    permission: null.herobrine
+    script:
+    - if <util.random_chance[99]>:
+        - stop
+    - define randomplayer <server.online_players.random>
+    - spawn <[randomplayer].location.above[70]> villager save:herobrine
+    - define hero <entry[herobrine].spawned_entity>
+    - flag server thebrians:->:<[hero]>
+    - adjust <[hero]> has_ai:false
+    - adjust <[hero]> invulnerable:true
+    - execute as_server "disgplayer <[hero].uuid> Player Budzy setName Herobrine setDisplayedInTab false setNameVisible false"
+    - wait 0.5s
+    - execute as_server "execute at <[randomplayer].name> run spreadplayers ~ ~ 60 90 false <[hero].uuid>"
+
+
 nullmoonglitch:
     type: command
     name: nullmoonglitch
@@ -2230,6 +2536,18 @@ nullnoblackthing:
         - wait 1t
         - kill <[theblack]>
 
+nullnowatch:
+    type: command
+    name: nullnowatch
+    description: Kills Null watching (Admins only)
+    usage: /nullnowatch
+    permission: null.nowatch
+    script:
+    - foreach <server.flag[nullwatcher]> as:null:
+        - teleport <[null]> <player.location.below[400]>
+        - wait 1t
+        - kill <[null]>
+        - flag server nullwatcher:<-:<[null]>
 nullnor2:
     type: command
     name: nullnor2
@@ -2277,14 +2595,10 @@ nullnofalsevillager:
     permission: null.nofalsevillager
     script:
     - if !<server.has_flag[unsusvillager]>:
-        - if !<server.has_flag[circuitattacker]>:
-            - stop
+        - stop
     - define villager <server.flag[unsusvillager]>
-    - define circuit <server.flag[circuitattacker]>
     - wait 1t
-    - kill <[circuit]>
     - kill <[villager]>
-    - flag server circuitattacker:!
     - flag server unsusvillager:!
     - flag server circuitdespawn:!
     - flag server falsegoneforever:!
@@ -2323,9 +2637,6 @@ nullnocircuit:
     - kill <[circuit]>
     - flag server circuitnull:!
     - flag server circuittimedeath:!
-    - foreach <server.online_players_flagged[broisrealangry]> as:player:
-        - flag <[player]> broisrealangry:!
-        - flag <[player]> circuitwarning:!
 
 nullnoxxram2diexx:
     type: command
@@ -2355,6 +2666,62 @@ nullnonothingiswatching:
         - kill <[nothing]>
         - kill <[litnothing]>
         - flag server thewatchers:<-:<[nothing]>
+
+nullnoinvadebase:
+    type: command
+    name: nullnoinvadebase
+    description: Kills Null invading base (Admins only)
+    usage: /nullnoinvadebase
+    permission: null.noinvadebase
+    script:
+    - foreach <server.flag[nullinvaders]> as:invader:
+        - teleport <[invader]> <[invader].location.below[400]>
+        - kill <[invader]>
+        - wait 1t
+        - flag server nullinvaders:<-:<[invader]>
+
+nullnocircuitmineshaft:
+    type: command
+    name: nullnocircuitmineshaft
+    description: Kills circuit mineshaft (Admins only)
+    usage: /nullnocircuitmineshaft
+    permission: null.noinvadebase
+    script:
+    - foreach <server.flag[circuitshafting]> as:circuit:
+        - teleport <[circuit]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[leftleg]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[rightleg]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[leftarm]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[rightarm]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[torso]> <[circuit].location.below[400]>
+        - teleport <[circuit].flag[head]> <[circuit].location.below[400]>
+        - kill <[circuit].flag[leftleg]>
+        - kill <[circuit].flag[rightarm]>
+        - kill <[circuit].flag[leftarm]>
+        - kill <[circuit].flag[rightarm]>
+        - kill <[circuit].flag[torso]>
+        - kill <[circuit].flag[head]>
+        - flag <[circuit]> leftleg:!
+        - flag <[circuit]> rightleg:!
+        - flag <[circuit]> leftarm:!
+        - flag <[circuit]> rightarm:!
+        - flag <[circuit]> torso:!
+        - flag <[circuit]> head:!
+        - kill <[circuit]>
+        - flag server circuitshafting:<-:<[circuit]>
+
+nullnocurved:
+    type: command
+    name: nullnocurved
+    description: Kills DyeXD412
+    usage: /nullnocurved
+    permission: null.nocurved
+    script:
+    - foreach <server.flag[curving]> as:curved:
+        - teleport <[curved].flag[facelol]> <[curved].location.below[500]>
+        - teleport <[curved]> <[curved].location.below[500]>
+        - flag server curving:<-:<[curved]>
+        - kill <[curved]>
 
 nulldebug:
     type: command
@@ -2390,6 +2757,30 @@ nullplugin:
     usage: /nullplugin
     permission: null.plugin
     script:
-    - narrate "<green>Null <white>version <green><green><element[0.0.0].on_hover[Click to copy to clipboard].on_click[0.0.0].type[COPY_TO_CLIPBOARD]>"
+    - narrate "<white>Null version <green><green><element[0.0.0].on_hover[Click to copy to clipboard].on_click[0.0.0].type[COPY_TO_CLIPBOARD]>"
     - narrate "Here I am."
     - narrate "Author: <green>null"
+
+nullevent:
+    type: command
+    name: nullevent
+    description: The command that runs when an event happends. Moved it to here to make it easier for people to add new events without changing source code.
+    usage: /nullevent
+    permission: null.event
+    script:
+    - define randomevent <list[nullwatch|nullsong|nullsteps|nulltitle|nullpotion|nulladvancement2|nullgoaway|nullhappyface|nullopengl|nullfall|nullhost|nulljumpscare|nullbreak|nullrandomlook|nullinventory|nullgoodluck|nullplaysound|nullbook|nullslowsong|nullfire|nulldisc11|nullfaraway|nullfreezetime|nulllightning|nullfalsevillager|nullbsod|nullflying|nullcircuitdisguised|nullnamemob|nullcircuit|nullstructure|nullrandomtext|nullwater|nullhungry|nulldenizenwarning|nullheartbeat|nulldoors|nulljframe5|nullplacebase|nullinvadebase|nullnothingiswatching|nullplacesign|nullcircuitmineshaft].random>
+    - if <server.has_flag[nulldebug]>:
+        - narrate "Current event <[randomevent]> and reputation is <server.flag[reputation]>" targets:<server.online_ops>
+    - execute as_server <[randomevent]>
+    - if <server.flag[reputation]> == GOOD:
+        - define maybechest <util.random_chance[10]>
+        - if <[maybechest]>:
+            - execute as_server nullgift
+    - define chance <util.random_chance[20]>
+    - if <server.flag[reputation]> == BAD:
+        - define chance <util.random_chance[50]>
+    - if <[chance]>:
+        - define randomentity <list[nullr2|nullblackthing|nullfaraway|nullherobrine].random>
+        - execute as_server <[randomentity]>
+        - if <server.has_flag[nulldebug]>:
+            - narrate "Oh no! an entity, current entity: <[randomentity]>" targets:<server.online_ops>
