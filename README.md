@@ -1,8 +1,8 @@
 # The Broken Denizen.
 
-This is just a little denizen script I decided to make. It's the broken script mod, but on plugin.
+This is just a little Denizen script I decided to make. It's the broken script mod, but on Denizen.
 
-Sorry for the messy code, credits to the original creator of _The Broken Script_
+Sorry if the code is messy, credits to the original creator of _The Broken Script_
 
 **Requirements:**
 - Libs disguises
@@ -18,7 +18,7 @@ Plugin can:
 
 - Disable chat messages  
 - Grief bases  
-- **Crash** Minecraft clients
+- **Crash** Minecraft clients*
 - Make you unable to exit the server
 - Ban players
 
@@ -37,7 +37,7 @@ Plugin can:
 
 ---
 
-# About crashes.
+# *About crashes.
 
 This plugin has events that crash the Minecraft client, but **no crash method is provided**.  
 You must research and supply one yourself (e.g. particle crash).
