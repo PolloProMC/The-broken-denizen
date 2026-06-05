@@ -1,6 +1,6 @@
 # The Broken Denizen.
 
-This is just a little Denizen script I decided to make. It's the broken script mod, but on Denizen.
+This is just a not-so-little Denizen script I decided to make. It's the broken script mod, but on Denizen.
 
 Sorry if the code is messy, credits to the original creator of _The Broken Script_
 
@@ -43,6 +43,6 @@ This plugin has events that crash the Minecraft client, but **no crash method is
 You must research and supply one yourself (e.g. particle crash).
 
 To insert a crash, go to the bottom of the script, above the ignore section, and look for the "nullcrash" command.
-You can insert a crash of your choise there.
+You can insert a crash of your choice there.
 
 If no crash is chosen, the plugin will just kick the player.
