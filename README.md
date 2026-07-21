@@ -8,7 +8,7 @@ Sorry if the code is messy, credits to the original creator of _The Broken Scrip
 - Libs disguises
 - The resource pack provided
 - Denizen script
-- Minecraft version **1.21.7 or 1.21.8**
+- Minecraft version **1.21.8** or above. Older versions are not supported. Future versions have not been tested, but they should work.
 
 ---
 
